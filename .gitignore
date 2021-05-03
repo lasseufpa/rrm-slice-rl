@@ -1,3 +1,9 @@
+# Quadriga Channels
+channels/
+
+# Calculated SE files
+se/
+
 # Vs code files
 .vscode
 
