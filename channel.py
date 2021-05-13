@@ -199,7 +199,7 @@ def main():
     )
 
     # Plot SE from trial 1 frequency index 2 from external files
-    Channel.plot_se(file_path, 1, 2, np.arange(1, 11), no_samples)
+    Channel.plot_se(file_path, 1, 1, np.arange(1, 11), no_samples)
 
 
 if __name__ == "__main__":
