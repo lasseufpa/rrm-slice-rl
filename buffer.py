@@ -62,6 +62,9 @@ class Buffer:
             (self.cumulative_buffer) * np.arange(1, self.max_packets_age + 1)
         ) / np.sum(self.cumulative_buffer)
 
+    def get_sent_packets(self) -> np.array:
+        return np.sum(self.cumulative_buffer)
+
 
 def main():
     # Testing Buffer functions
