@@ -133,6 +133,11 @@ class Channel:
         scenario simulation. Filenames follow the pattern
         './se/trial{number}_f{frequency_index}_ue{number}'.
         """
+        try:
+            os.mkdir("./se")
+        except OSError as error:
+            print(error)
+
         for trial in trials_list:
             serving_se = Channel.get_serving_se(
                 sir_path.format(trial),
