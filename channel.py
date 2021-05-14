@@ -11,7 +11,7 @@ class Channel:
     @staticmethod
     def extract_power(
         path_to_rsrp_csv: str, no_cell: int, no_samples: int
-    ) -> (np.array, np.array):
+    ) -> Tuple(np.array, np.array):
         """
         Gets the linear power for the top 7 cells for a specific UEx_fc_y.csv.
         Output is power = [no_cell, no_samples], and serving_pci = [no_samples].
