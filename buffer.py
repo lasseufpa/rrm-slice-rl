@@ -2,6 +2,12 @@ import numpy as np
 
 
 class Buffer:
+    """
+    Class containing the Buffer functions to add received packets and send
+    packets in according to the specified. It follows a FIFO logic. Each Buffer
+    is associated to one UE.
+    """
+
     dropped_packets = 0  # number of dropped packets per step
     sent_packets = 0  # number of sent packets per step
 

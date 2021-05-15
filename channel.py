@@ -8,6 +8,11 @@ import pandas as pd
 
 
 class Channel:
+    """
+    Class containing the functions to calculate the SE for each UE in according
+    to data obtained from QuaDriGa simulations.
+    """
+
     @staticmethod
     def extract_power(
         path_to_rsrp_csv: str, no_cell: int, no_samples: int
