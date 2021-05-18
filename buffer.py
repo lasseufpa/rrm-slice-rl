@@ -67,9 +67,12 @@ class Buffer:
         to emphasize it considers only the packets transmitted, so the remaining
         packets in the buffer are not considered.
         """
-        return np.sum(
-            (self.cumulative_buffer) * np.arange(1, self.max_packets_age + 1)
-        ) / np.sum(self.cumulative_buffer)
+        if np.sum(self.cumulative_buffer) != 0:
+            return np.sum(
+                (self.cumulative_buffer) * np.arange(1, self.max_packets_age + 1)
+            ) / np.sum(self.cumulative_buffer)
+        else:
+            return 0
 
 
 def main():
