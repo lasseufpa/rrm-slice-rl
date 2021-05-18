@@ -161,7 +161,7 @@ class UE:
             ax.set_title(title_labels[i])
             ax.set_xlabel(x_label)
             ax.set_ylabel(y_labels[i])
-            ax.plot(np.arange(hist[i].shape[0]), hist[i])
+            ax.scatter(np.arange(hist[i].shape[0]), hist[i])
             ax.grid()
         fig.tight_layout()
         fig.savefig(

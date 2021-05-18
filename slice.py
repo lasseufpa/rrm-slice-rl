@@ -131,7 +131,7 @@ class Slice:
             ax.set_title(title_labels[i])
             ax.set_xlabel(x_label)
             ax.set_ylabel(y_labels[i])
-            ax.plot(np.arange(hist[i].shape[0]), hist[i])
+            ax.scatter(np.arange(hist[i].shape[0]), hist[i])
             ax.grid()
         fig.tight_layout()
         fig.savefig(
@@ -160,7 +160,7 @@ class Slice:
         for i, ue in enumerate(self.ues):
             ue.step(step_number, rbs_ues[i])
             hist_ues.append(ue.hist)
-            if step_number == max_step_number:
+            if step_number == (max_step_number - 1):
                 ue.save_hist()
 
         #  Rools UE array to enable round-robin allocation
