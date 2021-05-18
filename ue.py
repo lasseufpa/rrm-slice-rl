@@ -107,6 +107,7 @@ class UE:
             pass
 
         np.savez_compressed((path + "ue{}").format(self.trial, self.id), **self.hist)
+        UE.plot_metrics(self.trial, self.id)
 
     @staticmethod
     def read_hist(trial_number: int, ue_id: int) -> np.array:
@@ -197,7 +198,6 @@ def main():
     for i in range(2000):
         ue.step(i, 10)
     ue.save_hist(),
-    ue.plot_metrics(1, 1)
 
 
 if __name__ == "__main__":
