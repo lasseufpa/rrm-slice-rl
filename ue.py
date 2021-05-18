@@ -197,7 +197,7 @@ def main():
     ue = UE(1, 1024, 100, 2, 1, "embb", 1, 17)
     for i in range(2000):
         ue.step(i, 10)
-    ue.save_hist(),
+    ue.save_hist()
 
 
 if __name__ == "__main__":
