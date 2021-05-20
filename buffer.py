@@ -8,14 +8,13 @@ class Buffer:
     is associated to one UE.
     """
 
-    dropped_packets = 0  # number of dropped packets per step
-    sent_packets = 0  # number of sent packets per step
-
     def __init__(self, max_packets_buffer: int, max_packet_age: int) -> None:
         self.buffer = np.zeros(max_packet_age)
         self.cumulative_buffer = np.zeros(max_packet_age)
         self.max_packets_buffer = max_packets_buffer
         self.max_packets_age = max_packet_age
+        self.dropped_packets = 0  # number of dropped packets per step
+        self.sent_packets = 0  # number of sent packets per step
 
     def receive_packets(self, num_packets_arrived: int) -> None:
         """

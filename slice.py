@@ -15,21 +15,20 @@ class Slice:
     station.
     """
 
-    hist_labels = [
-        "pkt_rcv",
-        "pkt_snt",
-        "pkt_thr",
-        "buffer_occ",
-        "avg_lat",
-        "dropped_pkts",
-    ]
-    hist = {hist_label: np.array([]) for hist_label in hist_labels}
-    ues_order = []
-    num_rbgs_assigned = 0
-
     def __init__(self, id: int, ues: list) -> None:
         self.id = id
         self.ues = ues
+        self.hist_labels = [
+            "pkt_rcv",
+            "pkt_snt",
+            "pkt_thr",
+            "buffer_occ",
+            "avg_lat",
+            "dropped_pkts",
+        ]
+        self.hist = {hist_label: np.array([]) for hist_label in self.hist_labels}
+        self.ues_order = []
+        self.num_rbgs_assigned = 0
 
     def add_ue(self, ue: UE) -> None:
         """
@@ -176,7 +175,7 @@ def main():
     max_number_steps = 2000
     ues = [UE(i, 1024, 100, 2, 1, "embb", 1, 17) for i in np.arange(1, number_ues + 1)]
     slice = Slice(1, ues)
-    for i in range(2000):
+    for i in range(max_number_steps):
         slice.step(i, max_number_steps, const_rbs)
     slice.save_hist(1)
 

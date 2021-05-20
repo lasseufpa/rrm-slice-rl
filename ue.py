@@ -14,16 +14,6 @@ class UE:
     for specific trials. Each UE will be assigned to a slice.
     """
 
-    hist_labels = [
-        "pkt_rcv",
-        "pkt_snt",
-        "pkt_thr",
-        "buffer_occ",
-        "avg_lat",
-        "dropped_pkts",
-    ]
-    hist = {hist_label: np.array([]) for hist_label in hist_labels}
-
     def __init__(
         self,
         id: int,
@@ -47,6 +37,15 @@ class UE:
             "./se/trial{}_f{}_ue{}.npy", trial, frequency, id
         )
         self.buffer = Buffer(1024, 10)
+        self.hist_labels = [
+            "pkt_rcv",
+            "pkt_snt",
+            "pkt_thr",
+            "buffer_occ",
+            "avg_lat",
+            "dropped_pkts",
+        ]
+        self.hist = {hist_label: np.array([]) for hist_label in self.hist_labels}
 
     def get_arrived_packets(self):
         """
