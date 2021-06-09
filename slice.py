@@ -173,7 +173,9 @@ def main():
     const_rbs = 2
     number_ues = 3
     max_number_steps = 2000
-    ues = [UE(i, 1024, 100, 2, 1, "embb", 1, 17) for i in np.arange(1, number_ues + 1)]
+    ues = [
+        UE(i, 1024, 10, 100, 2, 1, "embb", 1, 17) for i in np.arange(1, number_ues + 1)
+    ]
     slice = Slice(1, ues)
     for i in range(max_number_steps):
         slice.step(i, max_number_steps, const_rbs)

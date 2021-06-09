@@ -18,6 +18,7 @@ class UE:
         self,
         id: int,
         buffer_size: int,
+        buffer_max_lat: int,
         bandwidth: float,
         packet_size: int,
         trial: int,
@@ -36,7 +37,7 @@ class UE:
         self.se = Channel.read_se_file(
             "./se/trial{}_f{}_ue{}.npy", trial, frequency, id
         )
-        self.buffer = Buffer(1024, 10)
+        self.buffer = Buffer(buffer_size, buffer_max_lat)
         self.hist_labels = [
             "pkt_rcv",
             "pkt_snt",
@@ -193,7 +194,7 @@ class UE:
 
 def main():
     # Testing UE functions
-    ue = UE(1, 1024, 100, 2, 1, "embb", 1, 17)
+    ue = UE(1, 1024, 10, 100, 2, 1, "embb", 1, 17)
     for i in range(2000):
         ue.step(i, 10)
     ue.save_hist()
