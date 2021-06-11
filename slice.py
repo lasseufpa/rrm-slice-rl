@@ -140,6 +140,7 @@ class Slice:
             format="png",
             dpi=100,
         )
+        plt.close()
 
     def step(
         self, step_number: int, max_step_number: int, num_rbs_allocated: int

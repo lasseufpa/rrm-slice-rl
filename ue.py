@@ -171,6 +171,7 @@ class UE:
             format="png",
             dpi=100,
         )
+        plt.close()
 
     def step(self, step_number: int, number_rbs_allocated: int) -> None:
         """
