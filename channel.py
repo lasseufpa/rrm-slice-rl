@@ -205,7 +205,7 @@ def main():
     no_samples = 1000 * 2  # 1kHz sampling for 2 seconds
     file_path = "./se/trial{}_f{}_ue{}.npy"
     Channel.write_se_files(
-        [1], file_path, sir_path, rsrp_path, no_fc, no_UE, no_cell, no_samples
+        [2], file_path, sir_path, rsrp_path, no_fc, no_UE, no_cell, no_samples
     )
 
     # Plot SE from trial 1 frequency index 2 from external files

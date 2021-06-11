@@ -11,6 +11,8 @@ pre-commit = "*"
 pandas = "*"
 numpy = "*"
 matplotlib = "*"
+gym = "*"
+tqdm = "*"
 
 [dev-packages]
 black = "*"
