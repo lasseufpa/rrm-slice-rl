@@ -1,3 +1,5 @@
+from itertools import product
+
 import gym
 import numpy as np
 from gym import spaces
@@ -36,24 +38,27 @@ class Basestation(gym.Env):
         self.reward = 0
 
         self.ues, self.slices = self.create_scenario()
-        self.action_space = spaces.Box(
-            low=0, high=total_number_rbs, shape=(self.slices.shape[0],)
+        self.action_space_options = self.create_combinations(
+            self.total_number_rbs, self.slices.shape[0]
         )
+        self.action_space = spaces.Discrete(self.action_space_options.shape[0])
         self.observation_space = spaces.Box(
             low=0, high=np.inf, shape=((self.ues.shape[0] + self.slices.shape[0]) * 6,)
         )
 
     def step(self, action):
-        for i in range(len(action)):
-            self.slices[i].step(self.step_number, self.max_number_steps, action[i])
+        action_values = self.action_space_options[action]
+        for i in range(len(action_values)):
+            self.slices[i].step(
+                self.step_number, self.max_number_steps, action_values[i]
+            )
             if self.step_number == self.max_number_steps - 1:
                 self.slices[i].save_hist(self.trial_number)
 
-        self.observation_space = self.update_obs_space()
         self.step_number += 1
 
         return (
-            self.observation_space,
+            self.get_obs_space(),
             self.calculate_reward(),
             self.step_number == (self.max_number_steps - 1),
             [],
@@ -96,7 +101,7 @@ class Basestation(gym.Env):
 
         return ues, slices
 
-    def update_obs_space(self):
+    def get_obs_space(self):
         observation_slices = np.array([])
         observation_ues = np.array([])
         for slice in self.slices:
@@ -111,6 +116,14 @@ class Basestation(gym.Env):
     def calculate_reward(self):
         return 10  # TODO
 
+    def create_combinations(self, total_rbs, number_slices):
+        combinations = []
+        combs = product(range(0, total_rbs + 1), repeat=number_slices)
+        for comb in combs:
+            if np.sum(comb) == total_rbs:
+                combinations.append(comb)
+        return np.asarray(combinations)
+
 
 def main():
     traffic_types = np.concatenate(
@@ -123,7 +136,7 @@ def main():
     for trial in range(1, trials + 1):
         print("Trial ", trial)
         for step_number in tqdm(range(2000)):
-            _, _, _, _ = basestation.step([10, 4, 3])
+            _, _, _, _ = basestation.step(basestation.action_space.sample())
         if trial != (trials):
             basestation.reset()
 

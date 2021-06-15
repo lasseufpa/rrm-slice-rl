@@ -13,7 +13,8 @@ numpy = "*"
 matplotlib = "*"
 gym = "*"
 tqdm = "*"
-
+stable-baselines = "*"
+tensorflow = "1.15.0"
 [dev-packages]
 black = "*"
 
