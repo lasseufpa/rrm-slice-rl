@@ -31,6 +31,7 @@ class Basestation(gym.Env):
         frequency: int,
         total_number_rbs: int,
         max_number_steps: int,
+        max_number_trials: int,
         traffic_types: np.array,
     ):
         self.buffer_size = buffer_size
@@ -41,6 +42,7 @@ class Basestation(gym.Env):
         self.frequency = frequency
         self.total_number_rbs = total_number_rbs
         self.max_number_steps = max_number_steps
+        self.max_number_trials = max_number_trials
         self.traffic_types = traffic_types
         self.step_number = 0
         self.trial_number = 1
@@ -72,7 +74,7 @@ class Basestation(gym.Env):
         return (
             self.get_obs_space(),
             self.calculate_reward(),
-            self.step_number == (self.max_number_steps - 1),
+            self.step_number == (self.max_number_steps),
             {},
         )
 
@@ -82,7 +84,10 @@ class Basestation(gym.Env):
         episode without past residuous. The reset function increases
         the number of trials when a trial is finished.
         """
-        if self.step_number == self.max_number_steps:
+        if (
+            self.step_number == self.max_number_steps
+            and self.trial_number < self.max_number_trials
+        ):
             self.trial_number += 1
         else:
             self.trial_number = 1
@@ -178,7 +183,7 @@ def main():
         (np.repeat("embb", 4), np.repeat("urllc", 3), np.repeat("be", 3)), axis=None
     )
     basestation = Basestation(
-        10 * 65535 * 8, 100, 5000000, 65535 * 8, 10, 1, 17, 2000, traffic_types
+        10 * 65535 * 8, 100, 5000000, 65535 * 8, 10, 1, 17, 2000, 2, traffic_types
     )
     trials = 2
 

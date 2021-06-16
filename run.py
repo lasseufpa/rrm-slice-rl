@@ -10,7 +10,7 @@ traffic_types = np.concatenate(
     (np.repeat("embb", 4), np.repeat("urllc", 3), np.repeat("be", 3)), axis=None
 )
 env = Basestation(
-    10 * 65535 * 8, 100, 5000000, 65535 * 8, 10, 1, 17, 2000, traffic_types
+    10 * 65535 * 8, 100, 5000000, 65535 * 8, 10, 1, 17, 2000, 2, traffic_types
 )
 # check_env(env)
 # exit()
@@ -31,7 +31,7 @@ del model  # delete trained model to demonstrate loading
 
 # Load the trained agent
 env = Basestation(
-    10 * 65535 * 8, 100, 5000000, 65535 * 8, 10, 1, 17, 2000, traffic_types
+    10 * 65535 * 8, 100, 5000000, 65535 * 8, 10, 1, 17, 2000, 2, traffic_types
 )
 model = DQN.load("dqn_rrm", env)
 
