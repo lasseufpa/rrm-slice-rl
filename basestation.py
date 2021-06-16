@@ -10,6 +10,15 @@ from ue import UE
 
 
 class Basestation(gym.Env):
+    """
+    Basestation class containing the Gym environment variables and functions to
+    perform the radio resource management of the basestation in accordance with
+    the UEs and slices defined. It receives the action provided by the RL agent
+    and applies it to RRM function. The observation space is composed by slices
+    and UEs observations. The main() function implements a random agent
+    demostrating how the environment can be used outside a RL library.
+    """
+
     metadata = {"render.modes": ["human"]}
 
     def __init__(
@@ -47,6 +56,10 @@ class Basestation(gym.Env):
         )
 
     def step(self, action):
+        """
+        Performs the resource block allocation among slices in according to the
+        action received.
+        """
         action_values = self.action_space_options[action]
         for i in range(len(action_values)):
             self.slices[i].step(
@@ -64,6 +77,11 @@ class Basestation(gym.Env):
         )
 
     def reset(self):
+        """
+        Reset the UEs and Slices to enable the environment to start other
+        episode without past residuous. The reset function increases
+        the number of trials when a trial is finished.
+        """
         if self.step_number == self.max_number_steps:
             self.trial_number += 1
         else:
@@ -81,6 +99,9 @@ class Basestation(gym.Env):
         pass
 
     def create_scenario(self):
+        """
+        Creates UEs and slices as specified in the basestation init.
+        """
         ues = np.array(
             [
                 UE(
@@ -107,6 +128,10 @@ class Basestation(gym.Env):
         return ues, slices
 
     def get_obs_space(self):
+        """
+        Get observation space variable that is composed by slices and UEs
+        information.
+        """
         observation_slices = np.array([])
         observation_ues = np.array([])
         for slice in self.slices:
@@ -127,6 +152,18 @@ class Basestation(gym.Env):
         return 10  # TODO
 
     def create_combinations(self, total_rbs, number_slices):
+        """
+        Create the combinations of possible arrays with RBs allocation for each
+        slice. For instance, let's assume 3 slices and 17 RBs available in the
+        basestation, a valid array should be [1, 13, 3] since its summation is
+        equal to 17 RBs. Moreover, it indicates that the first slice received 1
+        RB, the second received 13 RBs, and the third received 3 RBs. A valid
+        array always has a summation equal to the total number of RBs in a
+        basestation and has its array-length equal to the number of slices. An
+        action taken by RL agent is a discrete number that represents the index
+        of the option into the array with all possible RBs allocations for
+        these slices.
+        """
         combinations = []
         combs = product(range(0, total_rbs + 1), repeat=number_slices)
         for comb in combs:
@@ -136,6 +173,7 @@ class Basestation(gym.Env):
 
 
 def main():
+    # Random agent implementation
     traffic_types = np.concatenate(
         (np.repeat("embb", 4), np.repeat("urllc", 3), np.repeat("be", 3)), axis=None
     )
