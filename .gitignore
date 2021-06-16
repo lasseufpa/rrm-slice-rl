@@ -1,3 +1,6 @@
+# Tensorboard logs
+tensorboard-logs/
+
 # Models info
 *.zip
 

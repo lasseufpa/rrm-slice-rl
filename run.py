@@ -16,7 +16,13 @@ env = Basestation(
 # exit()
 
 # Instantiate the agent
-model = DQN("MlpPolicy", env, learning_rate=1e-3, verbose=1)
+model = DQN(
+    "MlpPolicy",
+    env,
+    learning_rate=1e-3,
+    verbose=1,
+    tensorboard_log="./tensorboard-logs/",
+)
 # Train the agent
 model.learn(total_timesteps=int(100))
 # Save the agent
