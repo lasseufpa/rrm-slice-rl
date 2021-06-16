@@ -1,7 +1,7 @@
 import numpy as np
-from stable_baselines import DQN
-from stable_baselines.common.env_checker import check_env
-from stable_baselines.common.evaluation import evaluate_policy
+from stable_baselines3 import DQN
+from stable_baselines3.common.env_checker import check_env
+from stable_baselines3.common.evaluation import evaluate_policy
 
 from basestation import Basestation
 
@@ -16,7 +16,7 @@ env = Basestation(
 # exit()
 
 # Instantiate the agent
-model = DQN("MlpPolicy", env, learning_rate=1e-3, prioritized_replay=True, verbose=1)
+model = DQN("MlpPolicy", env, learning_rate=1e-3, verbose=1)
 # Train the agent
 model.learn(total_timesteps=int(100))
 # Save the agent
