@@ -24,7 +24,7 @@ model = DQN(
     tensorboard_log="./tensorboard-logs/",
 )
 # Train the agent
-model.learn(total_timesteps=int(100))
+model.learn(total_timesteps=int(4000))
 # Save the agent
 model.save("dqn_rrm")
 del model  # delete trained model to demonstrate loading
