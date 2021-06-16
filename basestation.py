@@ -54,20 +54,25 @@ class Basestation(gym.Env):
             )
             if self.step_number == self.max_number_steps - 1:
                 self.slices[i].save_hist(self.trial_number)
-
         self.step_number += 1
 
         return (
             self.get_obs_space(),
             self.calculate_reward(),
             self.step_number == (self.max_number_steps - 1),
-            [],
+            {},
         )
 
     def reset(self):
-        self.trial_number += 1
+        if self.step_number == self.max_number_steps:
+            self.trial_number += 1
+        else:
+            self.trial_number = 1
         self.step_number = 0
+
         self.ues, self.slices = self.create_scenario()
+
+        return self.get_obs_space()
 
     def render(self, mode="human"):
         pass
@@ -106,10 +111,15 @@ class Basestation(gym.Env):
         observation_ues = np.array([])
         for slice in self.slices:
             for array in slice.hist.values():
-                observation_slices = np.append(observation_slices, array[-1])
+                observation_slices = np.append(
+                    observation_slices, (array[-1] if len(array) != 0 else 0)
+                )
+
             for ue in slice.ues:
                 for array in ue.hist.values():
-                    observation_ues = np.append(observation_ues, array[-1])
+                    observation_ues = np.append(
+                        observation_ues, (array[-1] if len(array) != 0 else 0)
+                    )
 
         return np.append(observation_slices, observation_ues)
 
@@ -133,12 +143,14 @@ def main():
         10 * 65535 * 8, 100, 5000000, 65535 * 8, 10, 1, 17, 2000, traffic_types
     )
     trials = 2
+
+    basestation.reset()
     for trial in range(1, trials + 1):
         print("Trial ", trial)
         for step_number in tqdm(range(2000)):
             _, _, _, _ = basestation.step(basestation.action_space.sample())
-        if trial != (trials):
-            basestation.reset()
+            if step_number == basestation.max_number_steps - 1:
+                basestation.reset()
 
 
 if __name__ == "__main__":
