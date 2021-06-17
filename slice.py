@@ -105,21 +105,21 @@ class Slice:
         hist = Slice.read_hist(trial_number, slice_id)
 
         title_labels = [
-            "Received packets",
-            "Sent packets",
-            "Packets throughput",
-            "Buffer occupancy rate",
-            "Average buffer latency",
-            "Dropped Packets",
+            "Received Packets",
+            "Sent Packets",
+            "Packets Thr. Capacity",
+            "Buffer Occupancy Rate",
+            "Average Buffer Latency",
+            "Dropped Buffer Packets",
         ]
         x_label = "Iteration [n]"
         y_labels = [
-            "# Rcv pkts",
-            "# Snt pkts",
-            "# Pkts Thr. Avail.",
+            "# pkts",
+            "# pkts",
+            "# pkts",
             "Occupancy rate",
             "Latency [ms]",
-            "Dropped pkts",
+            "# pkts",
         ]
         w, h = plt.figaspect(0.6)
         fig = plt.figure(figsize=(w, h))
