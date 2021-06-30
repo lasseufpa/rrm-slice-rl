@@ -183,7 +183,7 @@ def main():
         (np.repeat("embb", 4), np.repeat("urllc", 3), np.repeat("be", 3)), axis=None
     )
     basestation = Basestation(
-        10 * 65535 * 8, 100, 5000000, 65535 * 8, 10, 1, 17, 2000, 2, traffic_types
+        100 * 8192 * 8, 100, 5000000, 8192 * 8, 10, 1, 17, 2000, 2, traffic_types
     )
     trials = 2
 
