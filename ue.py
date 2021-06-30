@@ -53,7 +53,25 @@ class UE:
         Return the number of packets received to queue in the buffer structure.
         It varies in according to the slice traffic behavior.
         """
-        return 150  # returning constant number (TODO)
+        if self.traffic_type == "embb":
+            arrived_packets = np.floor(
+                np.abs(np.random.normal((10 * 1e6) / self.packet_size, 10))
+            )
+        elif self.traffic_type == "urllc":
+            arrived_packets = np.floor(
+                np.abs(np.random.poisson((0.6 * 1e6) / (self.packet_size * 8)))
+            )
+        elif self.traffic_type == "be":
+            if np.random.random_sample() >= 0.5:
+                arrived_packets = np.floor(
+                    np.abs(np.random.normal((5 * 1e6) / self.packet_size * 8, 10))
+                )
+            else:
+                arrived_packets = 0
+        else:
+            raise Exception("UE {} traffic type specified is not valid".format(self.id))
+
+        return arrived_packets
 
     def get_pkt_throughput(
         self, step_number: int, number_rbs_allocated: int
