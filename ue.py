@@ -59,12 +59,12 @@ class UE:
             )
         elif self.traffic_type == "urllc":
             arrived_packets = np.floor(
-                np.abs(np.random.poisson((0.6 * 1e6) / (self.packet_size * 8)))
+                np.abs(np.random.poisson((0.6 * 1e6) / self.packet_size))
             )
         elif self.traffic_type == "be":
             if np.random.random_sample() >= 0.5:
                 arrived_packets = np.floor(
-                    np.abs(np.random.normal((5 * 1e6) / self.packet_size * 8, 10))
+                    np.abs(np.random.normal((5 * 1e6) / self.packet_size, 10))
                 )
             else:
                 arrived_packets = 0
