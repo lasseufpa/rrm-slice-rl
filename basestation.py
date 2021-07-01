@@ -174,7 +174,40 @@ class Basestation(gym.Env):
         )
 
     def calculate_reward(self):
-        return 10  # TODO
+        """
+        Calculates the environment reward for the action taken. It considers
+        the slices requirements as basis to formulate how good was the action.
+        """
+        reward = 0
+        slice_labels = ["embb", "urllc", "be"]
+        for i, slice in enumerate(self.slices):
+            # Throughput contribution
+            reward += (
+                -100
+                if min(
+                    slice.hist["pkt_snt"][-1].item(), slice.hist["pkt_thr"][-1].item()
+                )
+                < self.mpbs_to_packets(
+                    self.slice_requirements[slice_labels[i]]["throughput"]
+                )
+                else 100
+            )
+            # Latency contribution
+            reward += (
+                -100
+                if slice.hist["avg_lat"][-1].item()
+                < self.slice_requirements[slice_labels[i]]["latency"]
+                else 100
+            )
+            # Dropped packets contribution
+            reward += (
+                -100
+                if slice.hist["dropped_pkts"][-1].item()
+                < self.slice_requirements[slice_labels[i]]["dropped_packets"]
+                else 100
+            )
+
+        return reward
 
     def create_combinations(self, total_rbs, number_slices):
         """
@@ -195,6 +228,12 @@ class Basestation(gym.Env):
             if np.sum(comb) == total_rbs:
                 combinations.append(comb)
         return np.asarray(combinations)
+
+    def packets_to_mbps(self, number_packets) -> float:
+        return self.packet_size * number_packets / 1e6
+
+    def mpbs_to_packets(self, mbps) -> int:
+        return np.ceil(mbps / (self.packet_size))
 
 
 def main():
