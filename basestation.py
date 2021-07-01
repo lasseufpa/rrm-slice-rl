@@ -181,12 +181,11 @@ class Basestation(gym.Env):
         reward = 0
         slice_labels = ["embb", "urllc", "be"]
         for i, slice in enumerate(self.slices):
+            slice_hist = slice.get_last_hist()
             # Throughput contribution
             reward += (
                 -100
-                if min(
-                    slice.hist["pkt_snt"][-1].item(), slice.hist["pkt_thr"][-1].item()
-                )
+                if min(slice_hist["pkt_snt"], slice_hist["pkt_thr"])
                 < self.mpbs_to_packets(
                     self.slice_requirements[slice_labels[i]]["throughput"]
                 )
@@ -195,14 +194,14 @@ class Basestation(gym.Env):
             # Latency contribution
             reward += (
                 -100
-                if slice.hist["avg_lat"][-1].item()
+                if slice_hist["avg_lat"]
                 < self.slice_requirements[slice_labels[i]]["latency"]
                 else 100
             )
             # Dropped packets contribution
             reward += (
                 -100
-                if slice.hist["dropped_pkts"][-1].item()
+                if slice_hist["dropped_pkts"]
                 < self.slice_requirements[slice_labels[i]]["dropped_packets"]
                 else 100
             )

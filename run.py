@@ -7,10 +7,39 @@ from basestation import Basestation
 
 # Create environment
 traffic_types = np.concatenate(
-    (np.repeat("embb", 4), np.repeat("urllc", 3), np.repeat("be", 3)), axis=None
+    (
+        np.repeat(["embb"], 4),
+        np.repeat(["urllc"], 3),
+        np.repeat(["be"], 3),
+    ),
+    axis=None,
 )
+traffic_throughputs = np.concatenate(
+    (
+        np.repeat([10], 4),
+        np.repeat([0.6], 3),
+        np.repeat([5], 3),
+    ),
+    axis=None,
+)
+slice_requirements = {
+    "embb": {"throughput": 10, "latency": 10, "dropped_packets": 100},
+    "urllc": {"throughput": 0.6, "latency": 1, "dropped_packets": 0},
+    "be": {"throughput": 5, "latency": 100, "dropped_packets": 100},
+}
 env = Basestation(
-    10 * 65535 * 8, 100, 5000000, 65535 * 8, 10, 1, 17, 2000, 2, traffic_types
+    100 * 8192 * 8,
+    100,
+    5000000,
+    8192 * 8,
+    10,
+    1,
+    17,
+    2000,
+    2,
+    traffic_types,
+    traffic_throughputs,
+    slice_requirements,
 )
 # check_env(env)
 # exit()
@@ -31,7 +60,18 @@ del model  # delete trained model to demonstrate loading
 
 # Load the trained agent
 env = Basestation(
-    100 * 8192 * 8, 100, 5000000, 8192 * 8, 10, 1, 17, 2000, 2, traffic_types
+    100 * 8192 * 8,
+    100,
+    5000000,
+    8192 * 8,
+    10,
+    1,
+    17,
+    2000,
+    2,
+    traffic_types,
+    traffic_throughputs,
+    slice_requirements,
 )
 model = DQN.load("dqn_rrm", env)
 

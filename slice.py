@@ -63,6 +63,15 @@ class Slice:
         for i, var in enumerate(self.hist.items()):
             self.hist[var[0]] = np.append(self.hist[var[0]], hist_vars[i])
 
+    def get_last_hist(self) -> dict:
+        """
+        Return a hist variable containing the last iteration values.
+        """
+        return {
+            hist_label: self.hist[hist_label][-1].item()
+            for hist_label in self.hist_labels
+        }
+
     def save_hist(self, trial_number: int) -> None:
         """
         Save slice variables history to external file.
