@@ -33,6 +33,8 @@ class Basestation(gym.Env):
         max_number_steps: int,
         max_number_trials: int,
         traffic_types: np.array,
+        traffic_throughputs: np.array,
+        slice_requirements: dict,
     ):
         self.buffer_size = buffer_size
         self.buffer_max_lat = buffer_max_lat
@@ -47,6 +49,8 @@ class Basestation(gym.Env):
         self.step_number = 0
         self.trial_number = 1
         self.reward = 0
+        self.traffic_throughputs = traffic_throughputs
+        self.slice_requirements = slice_requirements
 
         self.ues, self.slices = self.create_scenario()
         self.action_space_options = self.create_combinations(
@@ -119,6 +123,7 @@ class Basestation(gym.Env):
                     self.traffic_types[i - 1],
                     self.frequency,
                     self.total_number_rbs,
+                    self.traffic_throughputs[i - 1],
                 )
                 for i in np.arange(1, self.number_ues + 1)
             ]
@@ -180,10 +185,39 @@ class Basestation(gym.Env):
 def main():
     # Random agent implementation
     traffic_types = np.concatenate(
-        (np.repeat("embb", 4), np.repeat("urllc", 3), np.repeat("be", 3)), axis=None
+        (
+            np.repeat(["embb"], 4),
+            np.repeat(["urllc"], 3),
+            np.repeat(["be"], 3),
+        ),
+        axis=None,
     )
+    traffic_throughputs = np.concatenate(
+        (
+            np.repeat([10], 4),
+            np.repeat([0.6], 3),
+            np.repeat([5], 3),
+        ),
+        axis=None,
+    )
+    slice_requirements = {
+        "embb": {"throughput": 10, "latency": 10, "dropped_packets": 100},
+        "urllc": {"throughput": 0.6, "latency": 1, "dropped_packets": 0},
+        "be": {"throughput": 5, "latency": 100, "dropped_packets": 100},
+    }
     basestation = Basestation(
-        100 * 8192 * 8, 100, 5000000, 8192 * 8, 10, 1, 17, 2000, 2, traffic_types
+        100 * 8192 * 8,
+        100,
+        5000000,
+        8192 * 8,
+        10,
+        1,
+        17,
+        2000,
+        2,
+        traffic_types,
+        traffic_throughputs,
+        slice_requirements,
     )
     trials = 2
 

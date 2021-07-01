@@ -25,6 +25,7 @@ class UE:
         traffic_type: str,
         frequency: int,
         total_number_rbs: int,
+        traffic_throughput: float,
     ) -> None:
         self.id = id
         self.trial = trial
@@ -38,6 +39,8 @@ class UE:
             "./se/trial{}_f{}_ue{}.npy", trial, frequency, id
         )
         self.buffer = Buffer(buffer_size, buffer_max_lat)
+        self.traffic_throughput = traffic_throughput
+        self.get_arrived_packets = self.define_traffic_function()
         self.hist_labels = [
             "pkt_rcv",
             "pkt_snt",
@@ -48,30 +51,56 @@ class UE:
         ]
         self.hist = {hist_label: np.array([]) for hist_label in self.hist_labels}
 
-    def get_arrived_packets(self):
+    def define_traffic_function(self):
         """
-        Return the number of packets received to queue in the buffer structure.
-        It varies in according to the slice traffic behavior.
+        Return a function to calculate the number of packets received to queue
+        in the buffer structure. It varies in according to the slice traffic behavior.
         """
-        if self.traffic_type == "embb":
-            arrived_packets = np.floor(
-                np.abs(np.random.normal((10 * 1e6) / self.packet_size, 10))
+
+        def traffic_embb():
+            return np.floor(
+                np.abs(
+                    np.random.normal(
+                        (self.traffic_throughput * 1e6) / self.packet_size,
+                        10,
+                    )
+                )
             )
-        elif self.traffic_type == "urllc":
-            arrived_packets = np.floor(
-                np.abs(np.random.poisson((0.6 * 1e6) / self.packet_size))
+
+        def traffic_urllc():
+            return np.floor(
+                np.abs(
+                    np.random.poisson(
+                        (self.traffic_throughput * 1e6) / self.packet_size
+                    )
+                )
             )
-        elif self.traffic_type == "be":
+
+        def traffic_be():
             if np.random.random_sample() >= 0.5:
-                arrived_packets = np.floor(
-                    np.abs(np.random.normal((5 * 1e6) / self.packet_size, 10))
+                return np.floor(
+                    np.abs(
+                        np.random.normal(
+                            (self.traffic_throughput * 1e6) / self.packet_size,
+                            10,
+                        )
+                    )
                 )
             else:
-                arrived_packets = 0
-        else:
-            raise Exception("UE {} traffic type specified is not valid".format(self.id))
+                return 0
 
-        return arrived_packets
+        if self.traffic_type == "embb":
+            return traffic_embb
+        elif self.traffic_type == "urllc":
+            return traffic_urllc
+        elif self.traffic_type == "be":
+            return traffic_be
+        else:
+            raise Exception(
+                "UE {} traffic type {} specified is not valid".format(
+                    self.id, self.traffic_type
+                )
+            )
 
     def get_pkt_throughput(
         self, step_number: int, number_rbs_allocated: int
