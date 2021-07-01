@@ -58,7 +58,12 @@ class Basestation(gym.Env):
         )
         self.action_space = spaces.Discrete(self.action_space_options.shape[0])
         self.observation_space = spaces.Box(
-            low=0, high=np.inf, shape=((self.ues.shape[0] + self.slices.shape[0]) * 6,)
+            low=0,
+            high=np.inf,
+            shape=(
+                (self.ues.shape[0] + self.slices.shape[0]) * 6
+                + len(self.slice_requirements) * 3,
+            ),
         )
 
     def step(self, action):
@@ -142,8 +147,16 @@ class Basestation(gym.Env):
         Get observation space variable that is composed by slices and UEs
         information.
         """
+        slice_requirements = np.array([])
         observation_slices = np.array([])
         observation_ues = np.array([])
+
+        for slice_req in self.slice_requirements:
+            for attribute in self.slice_requirements[slice_req]:
+                slice_requirements = np.append(
+                    slice_requirements, self.slice_requirements[slice_req][attribute]
+                )
+
         for slice in self.slices:
             for array in slice.hist.values():
                 observation_slices = np.append(
@@ -156,7 +169,9 @@ class Basestation(gym.Env):
                         observation_ues, (array[-1] if len(array) != 0 else 0)
                     )
 
-        return np.append(observation_slices, observation_ues)
+        return np.concatenate(
+            (slice_requirements, observation_slices, observation_ues), axis=None
+        )
 
     def calculate_reward(self):
         return 10  # TODO
