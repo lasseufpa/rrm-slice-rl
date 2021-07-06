@@ -242,7 +242,7 @@ class UE:
 
 def main():
     # Testing UE functions
-    ue = UE(1, 1024, 10, 100, 2, 1, "embb", 1, 17)
+    ue = UE(1, 1024, 10, 100, 2, 1, "embb", 1, 17, 10)
     for i in range(2000):
         ue.step(i, 10)
     ue.save_hist()
