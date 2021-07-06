@@ -1,6 +1,9 @@
+import os
 from itertools import product
+from typing import Tuple
 
 import gym
+import matplotlib.pyplot as plt
 import numpy as np
 from gym import spaces
 from tqdm import tqdm
@@ -66,7 +69,16 @@ class Basestation(gym.Env):
             ),
         )
 
-    def step(self, action):
+        self.hist_labels = [
+            "actions",
+            "rewards",
+        ]
+        self.hist = {
+            hist_label: np.array([]) if hist_label != "actions" else np.empty((0, 3))
+            for hist_label in self.hist_labels
+        }
+
+    def step(self, action: int):
         """
         Performs the resource block allocation among slices in according to the
         action received.
@@ -78,11 +90,16 @@ class Basestation(gym.Env):
             )
             if self.step_number == self.max_number_steps - 1:
                 self.slices[i].save_hist(self.trial_number)
+
+        reward = self.calculate_reward()
+        self.update_hist(action_values, reward)
+        if self.step_number == self.max_number_steps - 1:
+            self.save_hist()
         self.step_number += 1
 
         return (
             self.get_obs_space(),
-            self.calculate_reward(),
+            reward,
             self.step_number == (self.max_number_steps),
             {},
         )
@@ -208,7 +225,7 @@ class Basestation(gym.Env):
 
         return reward
 
-    def create_combinations(self, total_rbs, number_slices):
+    def create_combinations(self, total_rbs: int, number_slices: int):
         """
         Create the combinations of possible arrays with RBs allocation for each
         slice. For instance, let's assume 3 slices and 17 RBs available in the
@@ -228,7 +245,86 @@ class Basestation(gym.Env):
                 combinations.append(comb)
         return np.asarray(combinations)
 
-    def packets_to_mbps(self, number_packets) -> float:
+    def update_hist(self, action_rbs, reward):
+        """
+        Update the hist values concerned to the basestation.
+        """
+        self.hist["actions"] = np.vstack((self.hist["actions"], action_rbs))
+        self.hist["rewards"] = np.append(self.hist["rewards"], reward, axis=None)
+
+    def save_hist(self) -> None:
+        """
+        Save variables history to external file.
+        """
+        path = ("./hist/trial{}/").format(self.trial_number)
+        try:
+            os.makedirs(path.format(self.trial_number))
+        except OSError:
+            pass
+
+        np.savez_compressed(path + "bs", **self.hist)
+        Basestation.plot_metrics(self.trial_number)
+
+    @staticmethod
+    def read_hist(trial_number: int) -> tuple:
+        """
+        Read variables history from external file.
+        """
+        path = "./hist/trial{}/bs.npz".format(trial_number)
+        data = np.load(path)
+        return (
+            data.f.actions,
+            data.f.rewards,
+        )
+
+    @staticmethod
+    def plot_metrics(trial_number: int) -> None:
+        """
+        Plot basestation performance obtained over a specific trial. Read the
+        information from external file.
+        """
+        hist = Basestation.read_hist(trial_number)
+
+        title_labels = [
+            "# RBs / Slice",
+            "Reward",
+        ]
+        x_label = "Iteration [n]"
+        y_labels = [
+            "# RBs",
+            "Reward",
+        ]
+        w, h = plt.figaspect(0.6)
+        fig = plt.figure(figsize=(w, h))
+        fig.suptitle("Trial {}".format(trial_number))
+
+        for i in np.arange(len(title_labels)):
+            ax = fig.add_subplot(2, 1, i + 1)
+            ax.set_title(title_labels[i])
+            ax.set_xlabel(x_label)
+            ax.set_ylabel(y_labels[i])
+            if hist[i].ndim > 1:
+                for j, values in enumerate(hist[i].T):
+                    ax.plot(
+                        np.arange(0, values.shape[0], 100),
+                        values[0::100],
+                        label="Slice {}".format(j + 1),
+                    )
+                plt.legend()
+            else:
+                ax.plot(np.arange(hist[i].shape[0]), hist[i])
+            ax.grid()
+        fig.tight_layout()
+        fig.savefig(
+            "./hist/trial{}/bs.png".format(trial_number),
+            bbox_inches="tight",
+            pad_inches=0,
+            format="png",
+            dpi=100,
+        )
+        plt.close()
+
+    def packets_to_mbps(self, number_packets: int) -> float:
         return self.packet_size * number_packets / 1e6
 
     def mpbs_to_packets(self, mbps) -> int:
