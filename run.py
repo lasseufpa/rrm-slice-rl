@@ -1,5 +1,5 @@
 import numpy as np
-from stable_baselines3 import DQN
+from stable_baselines3 import A2C
 from stable_baselines3.common.env_checker import check_env
 from stable_baselines3.common.evaluation import evaluate_policy
 
@@ -40,12 +40,13 @@ env = Basestation(
     traffic_types,
     traffic_throughputs,
     slice_requirements,
+    True,
 )
 # check_env(env)
 # exit()
 
 # Instantiate the agent
-model = DQN(
+model = A2C(
     "MlpPolicy",
     env,
     learning_rate=1e-3,
@@ -72,8 +73,9 @@ env = Basestation(
     traffic_types,
     traffic_throughputs,
     slice_requirements,
+    True,
 )
-model = DQN.load("dqn_rrm", env)
+model = A2C.load("dqn_rrm", env)
 
 # Evaluate the agent
 mean_reward, std_reward = evaluate_policy(model, model.get_env(), n_eval_episodes=2)

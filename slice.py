@@ -15,9 +15,10 @@ class Slice:
     station.
     """
 
-    def __init__(self, id: int, ues: list) -> None:
+    def __init__(self, id: int, ues: list, plots: bool) -> None:
         self.id = id
         self.ues = ues
+        self.plots = plots
         self.hist_labels = [
             "pkt_rcv",
             "pkt_snt",
@@ -85,7 +86,8 @@ class Slice:
         np.savez_compressed(
             (path + "slice{}").format(trial_number, self.id), **self.hist
         )
-        Slice.plot_metrics(trial_number, self.id)
+        if self.plots:
+            Slice.plot_metrics(trial_number, self.id)
 
     @staticmethod
     def read_hist(trial_number: int, slice_id: int) -> None:
@@ -184,13 +186,14 @@ def main():
     number_ues = 3
     max_number_steps = 2000
     ues = [
-        UE(i, 1024, 10, 100, 2, 1, "embb", 1, 17, 10)
+        UE(i, 1024, 10, 100, 2, 1, "embb", 1, 17, 10, False)
         for i in np.arange(1, number_ues + 1)
     ]
-    slice = Slice(1, ues)
+    slice = Slice(1, ues, False)
     for i in range(max_number_steps):
         slice.step(i, max_number_steps, const_rbs)
-    slice.save_hist(1)
+    if slice.plots:
+        slice.save_hist(1)
 
 
 if __name__ == "__main__":

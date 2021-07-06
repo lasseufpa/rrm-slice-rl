@@ -26,6 +26,7 @@ class UE:
         frequency: int,
         total_number_rbs: int,
         traffic_throughput: float,
+        plots: bool,
     ) -> None:
         self.id = id
         self.trial = trial
@@ -40,6 +41,7 @@ class UE:
         )
         self.buffer = Buffer(buffer_size, buffer_max_lat)
         self.traffic_throughput = traffic_throughput
+        self.plots = plots
         self.get_arrived_packets = self.define_traffic_function()
         self.hist_labels = [
             "pkt_rcv",
@@ -154,7 +156,8 @@ class UE:
             pass
 
         np.savez_compressed((path + "ue{}").format(self.trial, self.id), **self.hist)
-        UE.plot_metrics(self.trial, self.id)
+        if self.plots:
+            UE.plot_metrics(self.trial, self.id)
 
     @staticmethod
     def read_hist(trial_number: int, ue_id: int) -> np.array:
@@ -242,7 +245,7 @@ class UE:
 
 def main():
     # Testing UE functions
-    ue = UE(1, 1024, 10, 100, 2, 1, "embb", 1, 17, 10)
+    ue = UE(1, 1024, 10, 100, 2, 1, "embb", 1, 17, 10, True)
     for i in range(2000):
         ue.step(i, 10)
     ue.save_hist()

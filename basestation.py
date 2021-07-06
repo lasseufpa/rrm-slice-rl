@@ -38,6 +38,7 @@ class Basestation(gym.Env):
         traffic_types: np.array,
         traffic_throughputs: np.array,
         slice_requirements: dict,
+        plots: bool,
     ):
         self.buffer_size = buffer_size
         self.buffer_max_lat = buffer_max_lat
@@ -54,6 +55,7 @@ class Basestation(gym.Env):
         self.reward = 0
         self.traffic_throughputs = traffic_throughputs
         self.slice_requirements = slice_requirements
+        self.plots = plots
 
         self.ues, self.slices = self.create_scenario()
         self.action_space_options = self.create_combinations(
@@ -146,6 +148,7 @@ class Basestation(gym.Env):
                     self.frequency,
                     self.total_number_rbs,
                     self.traffic_throughputs[i - 1],
+                    False,
                 )
                 for i in np.arange(1, self.number_ues + 1)
             ]
@@ -154,7 +157,10 @@ class Basestation(gym.Env):
         values, indexes = np.unique(self.traffic_types, return_inverse=True)
         # Slices follows an alphabetical order
         slices = np.array(
-            [Slice(i, ues[indexes == (i - 1)]) for i in range(1, len(values) + 1)]
+            [
+                Slice(i, ues[indexes == (i - 1)], False)
+                for i in range(1, len(values) + 1)
+            ]
         )
 
         return ues, slices
@@ -263,7 +269,8 @@ class Basestation(gym.Env):
             pass
 
         np.savez_compressed(path + "bs", **self.hist)
-        Basestation.plot_metrics(self.trial_number)
+        if self.plots:
+            Basestation.plot_metrics(self.trial_number)
 
     @staticmethod
     def read_hist(trial_number: int) -> tuple:
@@ -367,6 +374,7 @@ def main():
         traffic_types,
         traffic_throughputs,
         slice_requirements,
+        True,
     )
     trials = 2
 
