@@ -48,7 +48,7 @@ class Slice:
         """
         Update slice variables history to enable the record to external files.
         """
-        hist_ue_labels = [
+        hist_slice_labels = [
             "pkt_rcv",
             "pkt_snt",
             "pkt_thr",
@@ -57,7 +57,7 @@ class Slice:
             "dropped_pkts",
         ]
         hist_vars = np.array([])
-        for label in hist_ue_labels:
+        for label in hist_slice_labels:
             hist_vars = np.append(
                 hist_vars, np.mean([hist_ue[label][-1] for hist_ue in hist_ues])
             )
@@ -189,7 +189,7 @@ def main():
     number_ues = 3
     max_number_steps = 2000
     ues = [
-        UE(i, 1024, 10, 100, 2, 1, "embb", 1, 17, 10, False)
+        UE("test", i, 1024, 10, 100, 2, 1, "embb", 1, 17, 10, False)
         for i in np.arange(1, number_ues + 1)
     ]
     slice = Slice("teste", 1, ues, False)
