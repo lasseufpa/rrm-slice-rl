@@ -212,8 +212,9 @@ class Basestation(gym.Env):
             reward += (
                 -100
                 if min(slice_hist["pkt_snt"], slice_hist["pkt_thr"])
-                < self.mpbs_to_packets(
-                    self.slice_requirements[slice_labels[i]]["throughput"]
+                < self.mbps_to_packets(
+                    self.packet_size,
+                    self.slice_requirements[slice_labels[i]]["throughput"],
                 )
                 else 100
             )
@@ -273,7 +274,9 @@ class Basestation(gym.Env):
 
         np.savez_compressed(path + "bs", **self.hist)
         if self.plots:
-            Basestation.plot_metrics(self.bs_name, self.trial_number)
+            Basestation.plot_metrics(
+                self.bs_name, self.trial_number, self.slices.shape[0], self.ues.shape[0]
+            )
 
     @staticmethod
     def read_hist(bs_name: str, trial_number: int) -> tuple:
@@ -283,62 +286,128 @@ class Basestation(gym.Env):
         path = "./hist/{}/trial{}/bs.npz".format(bs_name, trial_number)
         data = np.load(path)
         return (
-            data.f.actions,
+            data.f.actions.T,
             data.f.rewards,
         )
 
     @staticmethod
-    def plot_metrics(bs_name: str, trial_number: int) -> None:
+    def plot_metrics(
+        bs_name: str,
+        trial_number: int,
+        max_slice_id: int,
+        max_number_ues: int,
+        step: int = 10,
+    ) -> None:
         """
         Plot basestation performance obtained over a specific trial. Read the
         information from external file.
         """
-        hist = Basestation.read_hist(bs_name, trial_number)
 
-        title_labels = [
-            "# RBs / Slice",
-            "Reward",
-        ]
-        x_label = "Iteration [n]"
-        y_labels = [
-            "# RBs",
-            "Reward",
-        ]
-        w, h = plt.figaspect(0.6)
-        fig = plt.figure(figsize=(w, h))
-        fig.suptitle("Trial {}".format(trial_number))
-
-        for i in np.arange(len(title_labels)):
-            ax = fig.add_subplot(2, 1, i + 1)
-            ax.set_title(title_labels[i])
-            ax.set_xlabel(x_label)
-            ax.set_ylabel(y_labels[i])
-            if hist[i].ndim > 1:
-                for j, values in enumerate(hist[i].T):
-                    ax.plot(
-                        np.arange(0, values.shape[0], 100),
-                        values[0::100],
-                        label="Slice {}".format(j + 1),
+        def plot_slice_metrics():
+            filenames = [
+                "rcv_pkts",
+                "snt_pkts",
+                "pkt_thr_capacity",
+                "buffer_occ_rate",
+                "avg_buffer_lat",
+                "dropped_buffer_lat",
+            ]
+            x_label = "Iteration [n]"
+            y_labels = [
+                "Throughput received (Mbps)",
+                "Uplink Throughput (Mbps)",
+                "Throughput capacity (Mbps)",
+                "Occupancy rate",
+                "Latency [ms]",
+                "# dropped packets",
+            ]
+            slices_name = ["BE", "eMBB", "URLLC"]
+            for plot_number in range(len(filenames)):
+                w, h = plt.figaspect(0.6)
+                fig = plt.figure(figsize=(w, h))
+                plt.xlabel(x_label, fontsize=14)
+                plt.ylabel(y_labels[plot_number], fontsize=14)
+                plt.grid()
+                for slice_id in range(1, max_slice_id + 1):
+                    hist = Slice.read_hist(bs_name, trial_number, slice_id)[plot_number]
+                    hist = (
+                        Basestation.packets_to_mbps(8192 * 8, hist)
+                        if plot_number in [0, 1, 2]
+                        else hist
                     )
-                plt.legend()
-            else:
-                ax.plot(np.arange(hist[i].shape[0]), hist[i])
-            ax.grid()
-        fig.tight_layout()
-        fig.savefig(
-            "./hist/{}/trial{}/bs.png".format(bs_name, trial_number),
-            bbox_inches="tight",
-            pad_inches=0,
-            format="png",
-            dpi=100,
-        )
-        plt.close()
+                    plt.plot(
+                        range(0, len(hist), step),
+                        hist[0::step],
+                        label="Slice {}".format(slices_name[slice_id - 1]),
+                    )
+                fig.tight_layout()
+                plt.legend(fontsize=12)
+                fig.savefig(
+                    "./hist/{}/trial{}/{}.eps".format(
+                        bs_name, trial_number, filenames[plot_number]
+                    ),
+                    bbox_inches="tight",
+                    pad_inches=0,
+                    format="eps",
+                    dpi=1000,
+                )
+                plt.show()
+                plt.close()
 
-    def packets_to_mbps(self, number_packets: int) -> float:
-        return self.packet_size * number_packets / 1e6
+        def plot_bs_metrics():
+            filenames = [
+                "rbs_allocation",
+                "rewards",
+            ]
+            x_label = "Iteration [n]"
+            y_labels = [
+                "# RBs",
+                "Reward",
+            ]
+            slices_name = ["BE", "eMBB", "URLLC"]
+            for plot_number in range(len(filenames)):
+                w, h = plt.figaspect(0.6)
+                fig = plt.figure(figsize=(w, h))
+                plt.xlabel(x_label, fontsize=14)
+                plt.ylabel(y_labels[plot_number], fontsize=14)
+                hist = Basestation.read_hist(bs_name, trial_number)[plot_number]
+                if y_labels[plot_number] == "# RBs":
+                    for slice_id in range(0, max_slice_id):
+                        plt.plot(
+                            range(0, len(hist[slice_id]), step),
+                            hist[slice_id][0::step],
+                            label="Slice {}".format(slices_name[slice_id]),
+                        )
+                    plt.legend(fontsize=12)
+                else:
+                    plt.plot(
+                        range(0, len(hist), step),
+                        hist[0::step],
+                    )
+                fig.tight_layout()
+                plt.grid()
+                fig.savefig(
+                    "./hist/{}/trial{}/{}.eps".format(
+                        bs_name, trial_number, filenames[plot_number]
+                    ),
+                    bbox_inches="tight",
+                    pad_inches=0,
+                    format="eps",
+                    dpi=1000,
+                )
+                plt.show()
+                plt.close()
 
-    def mpbs_to_packets(self, mbps) -> int:
-        return np.ceil(mbps / (self.packet_size))
+        plot_slice_metrics()
+        plot_bs_metrics()
+
+    @staticmethod
+    def packets_to_mbps(packet_size, number_packets):
+        return packet_size * number_packets / 1e6
+
+    @staticmethod
+    def mbps_to_packets(packet_size, mbps):
+        return np.ceil(mbps / packet_size)
 
 
 def main():
