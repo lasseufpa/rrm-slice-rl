@@ -26,6 +26,7 @@ class Basestation(gym.Env):
 
     def __init__(
         self,
+        bs_name: str,
         buffer_size: int,
         buffer_max_lat: int,
         bandwidth: int,
@@ -40,6 +41,7 @@ class Basestation(gym.Env):
         slice_requirements: dict,
         plots: bool,
     ):
+        self.bs_name = bs_name
         self.buffer_size = buffer_size
         self.buffer_max_lat = buffer_max_lat
         self.bandwidth = bandwidth
@@ -138,6 +140,7 @@ class Basestation(gym.Env):
         ues = np.array(
             [
                 UE(
+                    self.bs_name,
                     i,
                     self.buffer_size,
                     self.buffer_max_lat,
@@ -158,7 +161,7 @@ class Basestation(gym.Env):
         # Slices follows an alphabetical order
         slices = np.array(
             [
-                Slice(i, ues[indexes == (i - 1)], False)
+                Slice(self.bs_name, i, ues[indexes == (i - 1)], False)
                 for i in range(1, len(values) + 1)
             ]
         )
@@ -262,22 +265,22 @@ class Basestation(gym.Env):
         """
         Save variables history to external file.
         """
-        path = ("./hist/trial{}/").format(self.trial_number)
+        path = ("./hist/{}/trial{}/").format(self.bs_name, self.trial_number)
         try:
-            os.makedirs(path.format(self.trial_number))
+            os.makedirs(path)
         except OSError:
             pass
 
         np.savez_compressed(path + "bs", **self.hist)
         if self.plots:
-            Basestation.plot_metrics(self.trial_number)
+            Basestation.plot_metrics(self.bs_name, self.trial_number)
 
     @staticmethod
-    def read_hist(trial_number: int) -> tuple:
+    def read_hist(bs_name: str, trial_number: int) -> tuple:
         """
         Read variables history from external file.
         """
-        path = "./hist/trial{}/bs.npz".format(trial_number)
+        path = "./hist/{}/trial{}/bs.npz".format(bs_name, trial_number)
         data = np.load(path)
         return (
             data.f.actions,
@@ -285,12 +288,12 @@ class Basestation(gym.Env):
         )
 
     @staticmethod
-    def plot_metrics(trial_number: int) -> None:
+    def plot_metrics(bs_name: str, trial_number: int) -> None:
         """
         Plot basestation performance obtained over a specific trial. Read the
         information from external file.
         """
-        hist = Basestation.read_hist(trial_number)
+        hist = Basestation.read_hist(bs_name, trial_number)
 
         title_labels = [
             "# RBs / Slice",
@@ -323,7 +326,7 @@ class Basestation(gym.Env):
             ax.grid()
         fig.tight_layout()
         fig.savefig(
-            "./hist/trial{}/bs.png".format(trial_number),
+            "./hist/{}/trial{}/bs.png".format(bs_name, trial_number),
             bbox_inches="tight",
             pad_inches=0,
             format="png",
@@ -362,6 +365,7 @@ def main():
         "be": {"throughput": 5, "latency": 100, "dropped_packets": 100},
     }
     basestation = Basestation(
+        "test",
         100 * 8192 * 8,
         100,
         5000000,

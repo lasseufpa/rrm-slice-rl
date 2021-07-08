@@ -28,6 +28,7 @@ slice_requirements = {
     "be": {"throughput": 5, "latency": 100, "dropped_packets": 100},
 }
 env = Basestation(
+    "test",
     100 * 8192 * 8,
     100,
     5000000,
@@ -61,6 +62,7 @@ del model  # delete trained model to demonstrate loading
 
 # Load the trained agent
 env = Basestation(
+    "test",
     100 * 8192 * 8,
     100,
     5000000,

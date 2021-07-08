@@ -16,6 +16,7 @@ class UE:
 
     def __init__(
         self,
+        bs_name: str,
         id: int,
         buffer_size: int,
         buffer_max_lat: int,
@@ -28,6 +29,7 @@ class UE:
         traffic_throughput: float,
         plots: bool,
     ) -> None:
+        self.bs_name = bs_name
         self.id = id
         self.trial = trial
         self.buffer_size = buffer_size
@@ -149,22 +151,22 @@ class UE:
         """
         Save variables history to external file.
         """
-        path = "./hist/trial{}/ues/"
+        path = "./hist/{}/trial{}/ues/".format(self.bs_name, self.trial)
         try:
-            os.makedirs(path.format(self.trial))
+            os.makedirs(path)
         except OSError:
             pass
 
-        np.savez_compressed((path + "ue{}").format(self.trial, self.id), **self.hist)
+        np.savez_compressed((path + "ue{}").format(self.id), **self.hist)
         if self.plots:
-            UE.plot_metrics(self.trial, self.id)
+            UE.plot_metrics(self.bs_name, self.trial, self.id)
 
     @staticmethod
-    def read_hist(trial_number: int, ue_id: int) -> np.array:
+    def read_hist(bs_name: str, trial_number: int, ue_id: int) -> np.array:
         """
         Read variables history from external file.
         """
-        path = "./hist/trial{}/ues/ue{}.npz".format(trial_number, ue_id)
+        path = "./hist/{}/trial{}/ues/ue{}.npz".format(bs_name, trial_number, ue_id)
         data = np.load(path)
         return np.array(
             [
@@ -178,12 +180,12 @@ class UE:
         )
 
     @staticmethod
-    def plot_metrics(trial_number: int, ue_id: int) -> None:
+    def plot_metrics(bs_name: str, trial_number: int, ue_id: int) -> None:
         """
         Plot UE performance obtained over a specific trial. Read the
         information from external file.
         """
-        hist = UE.read_hist(trial_number, ue_id)
+        hist = UE.read_hist(bs_name, trial_number, ue_id)
 
         title_labels = [
             "Received Packets",
@@ -215,7 +217,7 @@ class UE:
             ax.grid()
         fig.tight_layout()
         fig.savefig(
-            "./hist/trial{}/ues/ue{}.png".format(trial_number, ue_id),
+            "./hist/{}/trial{}/ues/ue{}.png".format(bs_name, trial_number, ue_id),
             bbox_inches="tight",
             pad_inches=0,
             format="png",
@@ -245,7 +247,7 @@ class UE:
 
 def main():
     # Testing UE functions
-    ue = UE(1, 1024, 10, 100, 2, 1, "embb", 1, 17, 10, True)
+    ue = UE("test", 1, 1024, 10, 100, 2, 1, "embb", 1, 17, 10, True)
     for i in range(2000):
         ue.step(i, 10)
     ue.save_hist()

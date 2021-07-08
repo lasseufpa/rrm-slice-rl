@@ -15,7 +15,8 @@ class Slice:
     station.
     """
 
-    def __init__(self, id: int, ues: list, plots: bool) -> None:
+    def __init__(self, bs_name: str, id: int, ues: list, plots: bool) -> None:
+        self.bs_name = bs_name
         self.id = id
         self.ues = ues
         self.plots = plots
@@ -77,24 +78,24 @@ class Slice:
         """
         Save slice variables history to external file.
         """
-        path = "./hist/trial{}/slices/"
+        path = "./hist/{}/trial{}/slices/".format(self.bs_name, trial_number)
         try:
-            os.makedirs(path.format(trial_number))
+            os.makedirs(path)
         except OSError:
             pass
 
-        np.savez_compressed(
-            (path + "slice{}").format(trial_number, self.id), **self.hist
-        )
+        np.savez_compressed((path + "slice{}").format(self.id), **self.hist)
         if self.plots:
-            Slice.plot_metrics(trial_number, self.id)
+            Slice.plot_metrics(self.bs_name, trial_number, self.id)
 
     @staticmethod
-    def read_hist(trial_number: int, slice_id: int) -> None:
+    def read_hist(bs_name: str, trial_number: int, slice_id: int) -> None:
         """
         Read slice variables history from external file.
         """
-        path = "./hist/trial{}/slices/slice{}.npz".format(trial_number, slice_id)
+        path = "./hist/{}/trial{}/slices/slice{}.npz".format(
+            bs_name, trial_number, slice_id
+        )
         data = np.load(path)
         return np.array(
             [
@@ -108,12 +109,12 @@ class Slice:
         )
 
     @staticmethod
-    def plot_metrics(trial_number: int, slice_id: int) -> None:
+    def plot_metrics(bs_name: str, trial_number: int, slice_id: int) -> None:
         """
         Plot slice performance obtained over a specific trial. Read the
         information from external file.
         """
-        hist = Slice.read_hist(trial_number, slice_id)
+        hist = Slice.read_hist(bs_name, trial_number, slice_id)
 
         title_labels = [
             "Received Packets",
@@ -145,7 +146,9 @@ class Slice:
             ax.grid()
         fig.tight_layout()
         fig.savefig(
-            "./hist/trial{}/slices/slice{}.png".format(trial_number, slice_id),
+            "./hist/{}/trial{}/slices/slice{}.png".format(
+                bs_name, trial_number, slice_id
+            ),
             bbox_inches="tight",
             pad_inches=0,
             format="png",
@@ -189,7 +192,7 @@ def main():
         UE(i, 1024, 10, 100, 2, 1, "embb", 1, 17, 10, False)
         for i in np.arange(1, number_ues + 1)
     ]
-    slice = Slice(1, ues, False)
+    slice = Slice("teste", 1, ues, False)
     for i in range(max_number_steps):
         slice.step(i, max_number_steps, const_rbs)
     if slice.plots:
