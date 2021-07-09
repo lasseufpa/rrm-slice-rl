@@ -305,8 +305,8 @@ class Basestation(gym.Env):
 
         def plot_slice_metrics():
             filenames = [
-                "rcv_pkts",
-                "snt_pkts",
+                "rcv_thr",
+                "snt_thr",
                 "pkt_thr_capacity",
                 "buffer_occ_rate",
                 "avg_buffer_lat",
@@ -343,15 +343,15 @@ class Basestation(gym.Env):
                 fig.tight_layout()
                 plt.legend(fontsize=12)
                 fig.savefig(
-                    "./hist/{}/trial{}/{}.eps".format(
+                    "./hist/{}/trial{}/{}.pdf".format(
                         bs_name, trial_number, filenames[plot_number]
                     ),
-                    bbox_inches="tight",
+                    # bbox_inches="tight",
                     pad_inches=0,
-                    format="eps",
+                    format="pdf",
                     dpi=1000,
                 )
-                plt.show()
+                # plt.show()
                 plt.close()
 
         def plot_bs_metrics():
@@ -387,15 +387,15 @@ class Basestation(gym.Env):
                 fig.tight_layout()
                 plt.grid()
                 fig.savefig(
-                    "./hist/{}/trial{}/{}.eps".format(
+                    "./hist/{}/trial{}/{}.pdf".format(
                         bs_name, trial_number, filenames[plot_number]
                     ),
                     bbox_inches="tight",
                     pad_inches=0,
-                    format="eps",
+                    format="pdf",
                     dpi=1000,
                 )
-                plt.show()
+                # plt.show()
                 plt.close()
 
         plot_slice_metrics()
