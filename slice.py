@@ -189,7 +189,7 @@ def main():
     number_ues = 3
     max_number_steps = 2000
     ues = [
-        UE("test", i, 1024, 10, 100, 2, 1, "embb", 1, 17, 10, False)
+        UE("test", i, 1024, 10, 100, 2, 1, "embb", 1, 17, 10, False, 2021)
         for i in np.arange(1, number_ues + 1)
     ]
     slice = Slice("teste", 1, ues, False)

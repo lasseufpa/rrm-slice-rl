@@ -152,6 +152,7 @@ class Basestation(gym.Env):
                     self.total_number_rbs,
                     self.traffic_throughputs[i - 1],
                     False,
+                    2021,
                 )
                 for i in np.arange(1, self.number_ues + 1)
             ]
@@ -437,10 +438,10 @@ def main():
         "test",
         100 * 8192 * 8,
         100,
-        5000000,
+        100000000,
         8192 * 8,
         10,
-        1,
+        2,
         17,
         2000,
         2,

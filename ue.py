@@ -28,6 +28,7 @@ class UE:
         total_number_rbs: int,
         traffic_throughput: float,
         plots: bool,
+        seed: int,
     ) -> None:
         self.bs_name = bs_name
         self.id = id
@@ -54,6 +55,7 @@ class UE:
             "dropped_pkts",
         ]
         self.hist = {hist_label: np.array([]) for hist_label in self.hist_labels}
+        self.rng = np.random.default_rng(seed)
 
     def define_traffic_function(self):
         """
@@ -64,7 +66,7 @@ class UE:
         def traffic_embb():
             return np.floor(
                 np.abs(
-                    np.random.normal(
+                    self.rng.normal(
                         (self.traffic_throughput * 1e6) / self.packet_size,
                         10,
                     )
@@ -74,17 +76,15 @@ class UE:
         def traffic_urllc():
             return np.floor(
                 np.abs(
-                    np.random.poisson(
-                        (self.traffic_throughput * 1e6) / self.packet_size
-                    )
+                    self.rng.poisson((self.traffic_throughput * 1e6) / self.packet_size)
                 )
             )
 
         def traffic_be():
-            if np.random.random_sample() >= 0.5:
+            if self.rng.random() >= 0.5:
                 return np.floor(
                     np.abs(
-                        np.random.normal(
+                        self.rng.normal(
                             (self.traffic_throughput * 1e6) / self.packet_size,
                             10,
                         )
@@ -247,7 +247,7 @@ class UE:
 
 def main():
     # Testing UE functions
-    ue = UE("test", 1, 1024, 10, 100, 2, 1, "embb", 1, 17, 10, True)
+    ue = UE("test", 1, 1024, 10, 100, 2, 1, "embb", 1, 17, 10, True, 2021)
     for i in range(2000):
         ue.step(i, 10)
     ue.save_hist()
