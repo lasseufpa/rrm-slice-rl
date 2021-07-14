@@ -28,7 +28,7 @@ class UE:
         total_number_rbs: int,
         traffic_throughput: float,
         plots: bool,
-        seed: int,
+        seed: int,  # - 1 represents no fixed seed
     ) -> None:
         self.bs_name = bs_name
         self.id = id
@@ -55,7 +55,9 @@ class UE:
             "dropped_pkts",
         ]
         self.hist = {hist_label: np.array([]) for hist_label in self.hist_labels}
-        self.rng = np.random.default_rng(seed)
+        self.rng = (
+            np.random.default_rng(seed) if seed != -1 else np.random.default_rng()
+        )
 
     def define_traffic_function(self):
         """
