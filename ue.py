@@ -52,12 +52,14 @@ class UE:
             "pkt_thr",
             "buffer_occ",
             "avg_lat",
-            "dropped_pkts",
+            "pkt_loss",
         ]
         self.hist = {hist_label: np.array([]) for hist_label in self.hist_labels}
         self.rng = (
             np.random.default_rng(seed) if seed != -1 else np.random.default_rng()
         )
+        self.cum_rcv_pkts = 0
+        self.cum_dropped_pkts = 0
 
     def define_traffic_function(self):
         """
@@ -133,7 +135,7 @@ class UE:
         packets_throughput: int,
         buffer_occupancy: float,
         avg_latency: float,
-        dropped_packets: int,
+        pkt_loss: int,
     ) -> None:
         """
         Update the variables history to enable the record to external files.
@@ -144,7 +146,7 @@ class UE:
             packets_throughput,
             buffer_occupancy,
             avg_latency,
-            dropped_packets,
+            pkt_loss,
         ]
         for i, var in enumerate(self.hist.items()):
             self.hist[var[0]] = np.append(self.hist[var[0]], hist_vars[i])
@@ -177,7 +179,7 @@ class UE:
                 data.f.pkt_thr,
                 data.f.buffer_occ,
                 data.f.avg_lat,
-                data.f.dropped_pkts,
+                data.f.pkt_loss,
             ]
         )
 
@@ -195,7 +197,7 @@ class UE:
             "Packets Thr. Capacity",
             "Buffer Occupancy Rate",
             "Average Buffer Latency",
-            "Dropped Buffer Packets",
+            "Packet Loss Rate",
         ]
         x_label = "Iteration [n]"
         y_labels = [
@@ -204,7 +206,7 @@ class UE:
             "# pkts",
             "Occupancy rate",
             "Latency [ms]",
-            "# pkts",
+            "Packet loss rate",
         ]
         w, h = plt.figaspect(0.6)
         fig = plt.figure(figsize=(w, h))
@@ -235,6 +237,8 @@ class UE:
         """
         pkt_throughput = self.get_pkt_throughput(step_number, number_rbs_allocated)
         pkt_received = self.get_arrived_packets()
+        self.cum_rcv_pkts += pkt_received
+        self.cum_dropped_pkts += self.buffer.dropped_packets
         self.buffer.receive_packets(pkt_received)
         self.buffer.send_packets(pkt_throughput)
         self.update_hist(
@@ -243,7 +247,7 @@ class UE:
             pkt_throughput,
             self.buffer.get_buffer_occupancy(),
             self.buffer.get_avg_delay(),
-            self.buffer.dropped_packets,
+            self.cum_dropped_pkts / self.cum_rcv_pkts,
         )
 
 

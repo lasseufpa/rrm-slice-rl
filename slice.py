@@ -26,7 +26,7 @@ class Slice:
             "pkt_thr",
             "buffer_occ",
             "avg_lat",
-            "dropped_pkts",
+            "pkt_loss",
         ]
         self.hist = {hist_label: np.array([]) for hist_label in self.hist_labels}
         self.ues_order = []
@@ -54,7 +54,7 @@ class Slice:
             "pkt_thr",
             "buffer_occ",
             "avg_lat",
-            "dropped_pkts",
+            "pkt_loss",
         ]
         hist_vars = np.array([])
         for label in hist_slice_labels:
@@ -104,7 +104,7 @@ class Slice:
                 data.f.pkt_thr,
                 data.f.buffer_occ,
                 data.f.avg_lat,
-                data.f.dropped_pkts,
+                data.f.pkt_loss,
             ]
         )
 
@@ -122,7 +122,7 @@ class Slice:
             "Packets Thr. Capacity",
             "Buffer Occupancy Rate",
             "Average Buffer Latency",
-            "Dropped Buffer Packets",
+            "Packet Loss Rate",
         ]
         x_label = "Iteration [n]"
         y_labels = [
@@ -131,7 +131,7 @@ class Slice:
             "# pkts",
             "Occupancy rate",
             "Latency [ms]",
-            "# pkts",
+            "Packet loss rate",
         ]
         w, h = plt.figaspect(0.6)
         fig = plt.figure(figsize=(w, h))

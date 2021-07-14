@@ -23,13 +23,13 @@ traffic_throughputs = np.concatenate(
     axis=None,
 )
 slice_requirements = {
-    "embb": {"throughput": 10, "latency": 10, "dropped_packets": 100},
-    "urllc": {"throughput": 0.6, "latency": 1, "dropped_packets": 0},
-    "be": {"throughput": 5, "latency": 100, "dropped_packets": 100},
+    "embb": {"throughput": 10, "latency": 10, "pkt_loss": 0.2},
+    "urllc": {"throughput": 0.6, "latency": 1, "pkt_loss": 0.001},
+    "be": {"throughput": 5, "latency": 100, "pkt_loss": 0.2},
 }
 env = Basestation(
     "test",
-    100 * 8192 * 8,
+    1024 * 8192 * 8,
     100,
     100000000,
     8192 * 8,
@@ -63,7 +63,7 @@ del model  # delete trained model to demonstrate loading
 # Load the trained agent
 env = Basestation(
     "test",
-    100 * 8192 * 8,
+    1024 * 8192 * 8,
     100,
     100000000,
     8192 * 8,

@@ -226,11 +226,11 @@ class Basestation(gym.Env):
                 < self.slice_requirements[slice_labels[i]]["latency"]
                 else 100
             )
-            # Dropped packets contribution
+            # Packet loss contribution
             reward += (
                 -100
-                if slice_hist["dropped_pkts"]
-                < self.slice_requirements[slice_labels[i]]["dropped_packets"]
+                if slice_hist["pkt_loss"]
+                < self.slice_requirements[slice_labels[i]]["pkt_loss"]
                 else 100
             )
 
@@ -311,7 +311,7 @@ class Basestation(gym.Env):
                 "pkt_thr_capacity",
                 "buffer_occ_rate",
                 "avg_buffer_lat",
-                "dropped_buffer_lat",
+                "pkt_loss",
             ]
             x_label = "Iteration [n]"
             y_labels = [
@@ -320,7 +320,7 @@ class Basestation(gym.Env):
                 "Throughput capacity (Mbps)",
                 "Occupancy rate",
                 "Latency [ms]",
-                "# dropped packets",
+                "Packet loss rate",
             ]
             slices_name = ["BE", "eMBB", "URLLC"]
             for plot_number in range(len(filenames)):
@@ -430,13 +430,13 @@ def main():
         axis=None,
     )
     slice_requirements = {
-        "embb": {"throughput": 10, "latency": 10, "dropped_packets": 100},
-        "urllc": {"throughput": 0.6, "latency": 1, "dropped_packets": 0},
-        "be": {"throughput": 5, "latency": 100, "dropped_packets": 100},
+        "embb": {"throughput": 10, "latency": 10, "pkt_loss": 100},
+        "urllc": {"throughput": 0.6, "latency": 1, "pkt_loss": 0},
+        "be": {"throughput": 5, "latency": 100, "pkt_loss": 100},
     }
     basestation = Basestation(
         "test",
-        100 * 8192 * 8,
+        1024 * 8192 * 8,
         100,
         100000000,
         8192 * 8,
