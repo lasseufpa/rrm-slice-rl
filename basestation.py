@@ -213,7 +213,7 @@ class Basestation(gym.Env):
             # Throughput contribution
             reward += (
                 -100
-                if min(slice_hist["pkt_snt"], slice_hist["pkt_thr"])
+                if slice_hist["pkt_thr"]
                 < self.mbps_to_packets(
                     self.packet_size,
                     self.slice_requirements[slice_labels[i]]["throughput"],
@@ -222,17 +222,17 @@ class Basestation(gym.Env):
             )
             # Latency contribution
             reward += (
-                -100
+                100
                 if slice_hist["avg_lat"]
-                < self.slice_requirements[slice_labels[i]]["latency"]
-                else 100
+                <= self.slice_requirements[slice_labels[i]]["latency"]
+                else -100
             )
             # Packet loss contribution
             reward += (
-                -100
+                100
                 if slice_hist["pkt_loss"]
-                < self.slice_requirements[slice_labels[i]]["pkt_loss"]
-                else 100
+                <= self.slice_requirements[slice_labels[i]]["pkt_loss"]
+                else -100
             )
 
         return reward
