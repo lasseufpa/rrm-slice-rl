@@ -53,6 +53,7 @@ class UE:
             "buffer_occ",
             "avg_lat",
             "pkt_loss",
+            "se",
         ]
         self.hist = {hist_label: np.array([]) for hist_label in self.hist_labels}
         self.rng = (
@@ -136,6 +137,7 @@ class UE:
         buffer_occupancy: float,
         avg_latency: float,
         pkt_loss: int,
+        step_number: int,
     ) -> None:
         """
         Update the variables history to enable the record to external files.
@@ -147,6 +149,7 @@ class UE:
             buffer_occupancy,
             avg_latency,
             pkt_loss,
+            self.se[step_number],
         ]
         for i, var in enumerate(self.hist.items()):
             self.hist[var[0]] = np.append(self.hist[var[0]], hist_vars[i])
@@ -180,6 +183,7 @@ class UE:
                 data.f.buffer_occ,
                 data.f.avg_lat,
                 data.f.pkt_loss,
+                data.f.se,
             ]
         )
 
@@ -248,6 +252,7 @@ class UE:
             self.buffer.get_buffer_occupancy(),
             self.buffer.get_avg_delay(),
             self.cum_dropped_pkts / self.cum_rcv_pkts,
+            step_number,
         )
 
 
