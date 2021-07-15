@@ -251,7 +251,7 @@ class UE:
             pkt_throughput,
             self.buffer.get_buffer_occupancy(),
             self.buffer.get_avg_delay(),
-            self.cum_dropped_pkts / self.cum_rcv_pkts,
+            self.cum_dropped_pkts / self.cum_rcv_pkts if self.cum_rcv_pkts != 0 else 0,
             step_number,
         )
 
