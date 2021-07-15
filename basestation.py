@@ -153,7 +153,7 @@ class Basestation(gym.Env):
                     self.total_number_rbs,
                     self.traffic_throughputs[i - 1],
                     False,
-                    2021,
+                    -1,
                 )
                 for i in np.arange(1, self.number_ues + 1)
             ]
