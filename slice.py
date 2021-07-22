@@ -15,9 +15,12 @@ class Slice:
     station.
     """
 
-    def __init__(self, bs_name: str, id: int, ues: list, plots: bool) -> None:
+    def __init__(
+        self, bs_name: str, id: int, name: str, ues: list, plots: bool
+    ) -> None:
         self.bs_name = bs_name
         self.id = id
+        self.name = name
         self.ues = ues
         self.plots = plots
         self.hist_labels = [
@@ -27,6 +30,8 @@ class Slice:
             "buffer_occ",
             "avg_lat",
             "pkt_loss",
+            "long_term_pkt_thr",
+            "fifth_perc_pkt_thr",
         ]
         self.hist = {hist_label: np.array([]) for hist_label in self.hist_labels}
         self.ues_order = []
@@ -48,7 +53,7 @@ class Slice:
         """
         Update slice variables history to enable the record to external files.
         """
-        hist_slice_labels = [
+        hist_ue_labels = [
             "pkt_rcv",
             "pkt_snt",
             "pkt_thr",
@@ -57,13 +62,24 @@ class Slice:
             "pkt_loss",
         ]
         hist_vars = np.array([])
-        for label in hist_slice_labels:
+        for label in hist_ue_labels:
             hist_vars = np.append(
                 hist_vars, np.mean([hist_ue[label][-1] for hist_ue in hist_ues])
             )
 
         for i, var in enumerate(self.hist.items()):
-            self.hist[var[0]] = np.append(self.hist[var[0]], hist_vars[i])
+            if var[0] == "long_term_pkt_thr":
+                self.hist[var[0]] = np.append(
+                    self.hist[var[0]],
+                    np.sum(self.hist["pkt_thr"]) / self.hist["pkt_thr"].shape,
+                )
+            elif var[0] == "fifth_perc_pkt_thr":
+                self.hist[var[0]] = np.append(
+                    self.hist[var[0]],
+                    np.percentile(self.hist["pkt_thr"], 5),
+                )
+            else:
+                self.hist[var[0]] = np.append(self.hist[var[0]], hist_vars[i])
 
     def get_last_hist(self) -> dict:
         """
@@ -105,6 +121,8 @@ class Slice:
                 data.f.buffer_occ,
                 data.f.avg_lat,
                 data.f.pkt_loss,
+                data.f.long_term_pkt_thr,
+                data.f.fifth_perc_pkt_thr,
             ]
         )
 
@@ -192,7 +210,7 @@ def main():
         UE("test", i, 1024, 10, 100, 2, 1, "embb", 1, 17, 10, False, 2021)
         for i in np.arange(1, number_ues + 1)
     ]
-    slice = Slice("teste", 1, ues, False)
+    slice = Slice("teste", 1, "slice_name", ues, False)
     for i in range(max_number_steps):
         slice.step(i, max_number_steps, const_rbs)
     if slice.plots:

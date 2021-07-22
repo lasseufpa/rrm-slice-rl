@@ -5,6 +5,8 @@ from stable_baselines3.common.evaluation import evaluate_policy
 
 from basestation import Basestation
 
+trials = 50
+
 # Create environment
 traffic_types = np.concatenate(
     (
@@ -23,9 +25,9 @@ traffic_throughputs = np.concatenate(
     axis=None,
 )
 slice_requirements = {
-    "embb": {"throughput": 10, "latency": 10, "pkt_loss": 0.2},
-    "urllc": {"throughput": 0.6, "latency": 1, "pkt_loss": 0.001},
-    "be": {"throughput": 5, "latency": 100, "pkt_loss": 0.2},
+    "embb": {"throughput": 10, "latency": 20, "pkt_loss": 0.2},
+    "urllc": {"throughput": 1, "latency": 1, "pkt_loss": 0.001},
+    "be": {"long_term_pkt_thr": 5, "fifth_perc_pkt_thr": 2},
 }
 env = Basestation(
     "test",
@@ -37,7 +39,7 @@ env = Basestation(
     2,
     17,
     2000,
-    2,
+    trials,
     traffic_types,
     traffic_throughputs,
     slice_requirements,
@@ -55,7 +57,7 @@ model = A2C(
     tensorboard_log="./tensorboard-logs/",
 )
 # Train the agent
-model.learn(total_timesteps=int(4000))
+model.learn(total_timesteps=int(trials * 2000))
 # Save the agent
 model.save("dqn_rrm")
 del model  # delete trained model to demonstrate loading
@@ -71,7 +73,7 @@ env = Basestation(
     2,
     17,
     2000,
-    2,
+    trials,
     traffic_types,
     traffic_throughputs,
     slice_requirements,

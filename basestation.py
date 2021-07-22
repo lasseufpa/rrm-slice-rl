@@ -68,9 +68,10 @@ class Basestation(gym.Env):
             low=0,
             high=np.inf,
             shape=(
-                (self.ues.shape[0] + self.slices.shape[0]) * 6
-                + len(self.slice_requirements) * 3
-                + self.ues.shape[0],
+                self.ues.shape[0] * 6  # UEs
+                + self.slices.shape[0] * 8  # Slices
+                + 8  # Slice requirements
+                + self.ues.shape[0],  # UEs spectral efficiency
             ),
         )
 
@@ -125,6 +126,14 @@ class Basestation(gym.Env):
         self.step_number = 0
 
         self.ues, self.slices = self.create_scenario()
+        self.hist_labels = [
+            "actions",
+            "rewards",
+        ]
+        self.hist = {
+            hist_label: np.array([]) if hist_label != "actions" else np.empty((0, 3))
+            for hist_label in self.hist_labels
+        }
 
         return self.get_obs_space()
 
@@ -163,7 +172,13 @@ class Basestation(gym.Env):
         # Slices follows an alphabetical order
         slices = np.array(
             [
-                Slice(self.bs_name, i, ues[indexes == (i - 1)], False)
+                Slice(
+                    self.bs_name,
+                    i,
+                    values[i - 1],
+                    ues[indexes == (i - 1)],
+                    False,
+                )
                 for i in range(1, len(values) + 1)
             ]
         )
@@ -207,33 +222,79 @@ class Basestation(gym.Env):
         the slices requirements as basis to formulate how good was the action.
         """
         reward = 0
-        slice_labels = ["embb", "urllc", "be"]
-        for i, slice in enumerate(self.slices):
+        for slice in self.slices:
             slice_hist = slice.get_last_hist()
-            # Throughput contribution
-            reward += (
-                -100
-                if slice_hist["pkt_thr"]
-                < self.mbps_to_packets(
-                    self.packet_size,
-                    self.slice_requirements[slice_labels[i]]["throughput"],
+            if slice.name == "embb":
+                # Throughput contribution
+                reward += (
+                    -200
+                    if slice_hist["pkt_thr"]
+                    < self.mbps_to_packets(
+                        self.packet_size,
+                        self.slice_requirements["embb"]["throughput"],
+                    )
+                    else 200
                 )
-                else 100
-            )
-            # Latency contribution
-            reward += (
-                100
-                if slice_hist["avg_lat"]
-                <= self.slice_requirements[slice_labels[i]]["latency"]
-                else -100
-            )
-            # Packet loss contribution
-            reward += (
-                100
-                if slice_hist["pkt_loss"]
-                <= self.slice_requirements[slice_labels[i]]["pkt_loss"]
-                else -100
-            )
+                # Latency contribution
+                reward += (
+                    100
+                    if slice_hist["avg_lat"]
+                    <= self.slice_requirements["embb"]["latency"]
+                    else -100
+                )
+                # Packet loss contribution
+                reward += (
+                    100
+                    if slice_hist["pkt_loss"]
+                    <= self.slice_requirements["embb"]["pkt_loss"]
+                    else -100
+                )
+            elif slice.name == "urllc":
+                # Throughput contribution
+                reward += (
+                    -100
+                    if slice_hist["pkt_thr"]
+                    < self.mbps_to_packets(
+                        self.packet_size,
+                        self.slice_requirements["urllc"]["throughput"],
+                    )
+                    else 100
+                )
+                # Latency contribution
+                reward += (
+                    200
+                    if slice_hist["avg_lat"]
+                    <= self.slice_requirements["urllc"]["latency"]
+                    else -200
+                )
+                # Packet loss contribution
+                reward += (
+                    200
+                    if slice_hist["pkt_loss"]
+                    <= self.slice_requirements["urllc"]["pkt_loss"]
+                    else -200
+                )
+            elif slice.name == "be":
+                # Long term average throughput contribution
+                reward += (
+                    -100
+                    if slice_hist["long_term_pkt_thr"]
+                    < self.mbps_to_packets(
+                        self.packet_size,
+                        self.slice_requirements["be"]["long_term_pkt_thr"],
+                    )
+                    else 100
+                )
+                # Fifth percentile throughput contribution
+                reward += (
+                    -100
+                    if slice_hist["fifth_perc_pkt_thr"]
+                    < self.mbps_to_packets(
+                        self.packet_size,
+                        self.slice_requirements["be"]["fifth_perc_pkt_thr"],
+                    )
+                    else 100
+                )
 
         return reward
 
@@ -298,7 +359,7 @@ class Basestation(gym.Env):
         trial_number: int,
         max_slice_id: int,
         max_number_ues: int,
-        step: int = 10,
+        step: int = 1,
     ) -> None:
         """
         Plot basestation performance obtained over a specific trial. Read the
@@ -313,6 +374,8 @@ class Basestation(gym.Env):
                 "buffer_occ_rate",
                 "avg_buffer_lat",
                 "pkt_loss",
+                "long_term_pkt_thr",
+                "fifth_perc_pkt_thr",
             ]
             x_label = "Iteration [n]"
             y_labels = [
@@ -322,6 +385,8 @@ class Basestation(gym.Env):
                 "Occupancy rate",
                 "Latency [ms]",
                 "Packet loss rate",
+                "Long term average thr. (Mbps)",
+                "Fifth percentile throughput (Mbps)",
             ]
             slices_name = ["BE", "eMBB", "URLLC"]
             for plot_number in range(len(filenames)):
@@ -334,7 +399,7 @@ class Basestation(gym.Env):
                     hist = Slice.read_hist(bs_name, trial_number, slice_id)[plot_number]
                     hist = (
                         Basestation.packets_to_mbps(8192 * 8, hist)
-                        if plot_number in [0, 1, 2]
+                        if plot_number in [0, 1, 2, 6, 7]
                         else hist
                     )
                     plt.plot(
@@ -409,7 +474,7 @@ class Basestation(gym.Env):
 
     @staticmethod
     def mbps_to_packets(packet_size, mbps):
-        return np.ceil(mbps / packet_size)
+        return np.ceil(mbps * 1e6 / packet_size)
 
 
 def main():
@@ -431,10 +496,11 @@ def main():
         axis=None,
     )
     slice_requirements = {
-        "embb": {"throughput": 10, "latency": 10, "pkt_loss": 100},
-        "urllc": {"throughput": 0.6, "latency": 1, "pkt_loss": 0},
-        "be": {"throughput": 5, "latency": 100, "pkt_loss": 100},
+        "embb": {"throughput": 10, "latency": 20, "pkt_loss": 0.2},
+        "urllc": {"throughput": 1, "latency": 1, "pkt_loss": 0.001},
+        "be": {"long_term_pkt_thr": 5, "fifth_perc_pkt_thr": 2},
     }
+    trials = 2
     basestation = Basestation(
         "test",
         1024 * 8192 * 8,
@@ -445,13 +511,12 @@ def main():
         2,
         17,
         2000,
-        2,
+        trials,
         traffic_types,
         traffic_throughputs,
         slice_requirements,
         True,
     )
-    trials = 2
 
     basestation.reset()
     for trial in range(1, trials + 1):
