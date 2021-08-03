@@ -22,17 +22,20 @@ class UE:
         buffer_max_lat: int,
         bandwidth: float,
         packet_size: int,
-        trial: int,
+        run_number: int,
+        trial_number: int,
         traffic_type: str,
         frequency: int,
         total_number_rbs: int,
         traffic_throughput: float,
         plots: bool,
         seed: int,  # - 1 represents no fixed seed
+        windows_size: int = 100,
     ) -> None:
         self.bs_name = bs_name
         self.id = id
-        self.trial = trial
+        self.run_number = run_number
+        self.trial_number = trial_number
         self.buffer_size = buffer_size
         self.bandwidth = bandwidth
         self.packet_size = packet_size
@@ -40,10 +43,11 @@ class UE:
         self.frequency = frequency
         self.total_number_rbs = total_number_rbs
         self.se = Channel.read_se_file(
-            "./se/trial{}_f{}_ue{}.npy", trial, frequency, id
+            "./se/trial{}_f{}_ue{}.npy", trial_number, frequency, id
         )
         self.buffer = Buffer(buffer_size, buffer_max_lat)
         self.traffic_throughput = traffic_throughput
+        self.windows_size = windows_size
         self.plots = plots
         self.get_arrived_packets = self.define_traffic_function()
         self.hist_labels = [
@@ -59,8 +63,6 @@ class UE:
         self.rng = (
             np.random.default_rng(seed) if seed != -1 else np.random.default_rng()
         )
-        self.cum_rcv_pkts = 0
-        self.cum_dropped_pkts = 0
 
     def define_traffic_function(self):
         """
@@ -142,14 +144,25 @@ class UE:
         """
         Update the variables history to enable the record to external files.
         """
+        if step_number < self.windows_size:
+            slice_idx = 0
+        elif step_number >= self.windows_size:
+            slice_idx = -(self.windows_size - 1)
+
+        pkt_loss_den = np.sum(
+            np.append(self.hist["pkt_rcv"][slice_idx:], packets_received)
+        ) + np.sum(self.buffer.buffer)
         hist_vars = [
-            packets_received,
-            packets_sent,
-            packets_throughput,
-            buffer_occupancy,
-            avg_latency,
-            pkt_loss,
-            self.se[step_number],
+            np.mean(np.append(self.hist["pkt_rcv"][slice_idx:], packets_received)),
+            np.mean(np.append(self.hist["pkt_snt"][slice_idx:], packets_sent)),
+            np.mean(np.append(self.hist["pkt_thr"][slice_idx:], packets_throughput)),
+            np.mean(np.append(self.hist["buffer_occ"][slice_idx:], buffer_occupancy)),
+            np.mean(np.append(self.hist["avg_lat"][slice_idx:], avg_latency)),
+            np.sum(np.append(self.hist["pkt_loss"][slice_idx:], pkt_loss))
+            / pkt_loss_den
+            if pkt_loss_den != 0
+            else 0,
+            np.mean(np.append(self.hist["se"][slice_idx:], self.se[step_number])),
         ]
         for i, var in enumerate(self.hist.items()):
             self.hist[var[0]] = np.append(self.hist[var[0]], hist_vars[i])
@@ -158,7 +171,9 @@ class UE:
         """
         Save variables history to external file.
         """
-        path = "./hist/{}/trial{}/ues/".format(self.bs_name, self.trial)
+        path = "./hist/{}/run_{}/trial{}/ues/".format(
+            self.bs_name, self.run_number, self.trial_number
+        )
         try:
             os.makedirs(path)
         except OSError:
@@ -166,14 +181,18 @@ class UE:
 
         np.savez_compressed((path + "ue{}").format(self.id), **self.hist)
         if self.plots:
-            UE.plot_metrics(self.bs_name, self.trial, self.id)
+            UE.plot_metrics(self.bs_name, self.run_number, self.trial_number, self.id)
 
     @staticmethod
-    def read_hist(bs_name: str, trial_number: int, ue_id: int) -> np.array:
+    def read_hist(
+        bs_name: str, run_number: int, trial_number: int, ue_id: int
+    ) -> np.array:
         """
         Read variables history from external file.
         """
-        path = "./hist/{}/trial{}/ues/ue{}.npz".format(bs_name, trial_number, ue_id)
+        path = "./hist/{}/run_{}/trial{}/ues/ue{}.npz".format(
+            bs_name, run_number, trial_number, ue_id
+        )
         data = np.load(path)
         return np.array(
             [
@@ -188,12 +207,14 @@ class UE:
         )
 
     @staticmethod
-    def plot_metrics(bs_name: str, trial_number: int, ue_id: int) -> None:
+    def plot_metrics(
+        bs_name: str, run_number: int, trial_number: int, ue_id: int
+    ) -> None:
         """
         Plot UE performance obtained over a specific trial. Read the
         information from external file.
         """
-        hist = UE.read_hist(bs_name, trial_number, ue_id)
+        hist = UE.read_hist(bs_name, run_number, trial_number, ue_id)
 
         title_labels = [
             "Received Packets",
@@ -225,7 +246,9 @@ class UE:
             ax.grid()
         fig.tight_layout()
         fig.savefig(
-            "./hist/{}/trial{}/ues/ue{}.png".format(bs_name, trial_number, ue_id),
+            "./hist/{}/run_{}/trial{}/ues/ue{}.png".format(
+                bs_name, run_number, trial_number, ue_id
+            ),
             bbox_inches="tight",
             pad_inches=0,
             format="png",
@@ -241,8 +264,6 @@ class UE:
         """
         pkt_throughput = self.get_pkt_throughput(step_number, number_rbs_allocated)
         pkt_received = self.get_arrived_packets()
-        self.cum_rcv_pkts += pkt_received
-        self.cum_dropped_pkts += self.buffer.dropped_packets
         self.buffer.receive_packets(pkt_received)
         self.buffer.send_packets(pkt_throughput)
         self.update_hist(
@@ -251,14 +272,30 @@ class UE:
             pkt_throughput,
             self.buffer.get_buffer_occupancy(),
             self.buffer.get_avg_delay(),
-            self.cum_dropped_pkts / self.cum_rcv_pkts if self.cum_rcv_pkts != 0 else 0,
+            self.buffer.dropped_packets,
             step_number,
         )
 
 
 def main():
     # Testing UE functions
-    ue = UE("test", 1, 1024, 10, 100, 2, 1, "embb", 1, 17, 10, True, 2021)
+    ue = UE(
+        bs_name="test",
+        id=1,
+        buffer_size=1024,
+        buffer_max_lat=10,
+        bandwidth=100,
+        packet_size=2,
+        run_number=1,
+        trial_number=1,
+        traffic_type="embb",
+        frequency=1,
+        total_number_rbs=17,
+        traffic_throughput=10,
+        plots=False,
+        seed=2021,
+        windows_size=100,
+    )
     for i in range(2000):
         ue.step(i, 10)
     ue.save_hist()

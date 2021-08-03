@@ -16,11 +16,20 @@ class Slice:
     """
 
     def __init__(
-        self, bs_name: str, id: int, name: str, ues: list, plots: bool
+        self,
+        bs_name: str,
+        id: int,
+        name: str,
+        run_number: int,
+        trial_number: int,
+        ues: list,
+        plots: bool,
     ) -> None:
         self.bs_name = bs_name
         self.id = id
         self.name = name
+        self.run_number = run_number
+        self.trial_number = trial_number
         self.ues = ues
         self.plots = plots
         self.hist_labels = [
@@ -90,11 +99,13 @@ class Slice:
             for hist_label in self.hist_labels
         }
 
-    def save_hist(self, trial_number: int) -> None:
+    def save_hist(self) -> None:
         """
         Save slice variables history to external file.
         """
-        path = "./hist/{}/trial{}/slices/".format(self.bs_name, trial_number)
+        path = "./hist/{}/run_{}/trial{}/slices/".format(
+            self.bs_name, self.run_number, self.trial_number
+        )
         try:
             os.makedirs(path)
         except OSError:
@@ -102,15 +113,19 @@ class Slice:
 
         np.savez_compressed((path + "slice{}").format(self.id), **self.hist)
         if self.plots:
-            Slice.plot_metrics(self.bs_name, trial_number, self.id)
+            Slice.plot_metrics(
+                self.bs_name, self.run_number, self.trial_number, self.id
+            )
 
     @staticmethod
-    def read_hist(bs_name: str, trial_number: int, slice_id: int) -> None:
+    def read_hist(
+        bs_name: str, run_number: int, trial_number: int, slice_id: int
+    ) -> None:
         """
         Read slice variables history from external file.
         """
-        path = "./hist/{}/trial{}/slices/slice{}.npz".format(
-            bs_name, trial_number, slice_id
+        path = "./hist/{}/run_{}/trial{}/slices/slice{}.npz".format(
+            bs_name, run_number, trial_number, slice_id
         )
         data = np.load(path)
         return np.array(
@@ -127,12 +142,14 @@ class Slice:
         )
 
     @staticmethod
-    def plot_metrics(bs_name: str, trial_number: int, slice_id: int) -> None:
+    def plot_metrics(
+        bs_name: str, run_number: int, trial_number: int, slice_id: int
+    ) -> None:
         """
         Plot slice performance obtained over a specific trial. Read the
         information from external file.
         """
-        hist = Slice.read_hist(bs_name, trial_number, slice_id)
+        hist = Slice.read_hist(bs_name, run_number, trial_number, slice_id)
 
         title_labels = [
             "Received Packets",
@@ -164,8 +181,8 @@ class Slice:
             ax.grid()
         fig.tight_layout()
         fig.savefig(
-            "./hist/{}/trial{}/slices/slice{}.png".format(
-                bs_name, trial_number, slice_id
+            "./hist/{}/run_{}/trial{}/slices/slice{}.png".format(
+                bs_name, run_number, trial_number, slice_id
             ),
             bbox_inches="tight",
             pad_inches=0,
@@ -175,7 +192,10 @@ class Slice:
         plt.close()
 
     def step(
-        self, step_number: int, max_step_number: int, num_rbs_allocated: int
+        self,
+        step_number: int,
+        max_step_number: int,
+        num_rbs_allocated: int,
     ) -> None:
         """
         Executes slice processing. It allocates the RBs received from the base
@@ -207,14 +227,37 @@ def main():
     number_ues = 3
     max_number_steps = 2000
     ues = [
-        UE("test", i, 1024, 10, 100, 2, 1, "embb", 1, 17, 10, False, 2021)
+        UE(
+            bs_name="test",
+            id=i,
+            buffer_size=1024,
+            buffer_max_lat=10,
+            bandwidth=100,
+            packet_size=2,
+            run_number=1,
+            trial_number=1,
+            traffic_type="embb",
+            frequency=1,
+            total_number_rbs=17,
+            traffic_throughput=10,
+            plots=False,
+            seed=2021,
+            windows_size=100,
+        )
         for i in np.arange(1, number_ues + 1)
     ]
-    slice = Slice("teste", 1, "slice_name", ues, False)
+    slice = Slice(
+        bs_name="test",
+        id=1,
+        name="slice_name",
+        run_number=1,
+        trial_number=1,
+        ues=ues,
+        plots=False,
+    )
     for i in range(max_number_steps):
         slice.step(i, max_number_steps, const_rbs)
-    if slice.plots:
-        slice.save_hist(1)
+    slice.save_hist()
 
 
 if __name__ == "__main__":
