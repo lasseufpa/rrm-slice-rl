@@ -18,7 +18,7 @@ class UE:
         self,
         bs_name: str,
         id: int,
-        buffer_size: int,
+        max_packets_buffer: int,
         buffer_max_lat: int,
         bandwidth: float,
         packet_size: int,
@@ -36,7 +36,7 @@ class UE:
         self.id = id
         self.run_number = run_number
         self.trial_number = trial_number
-        self.buffer_size = buffer_size
+        self.max_packets_buffer = max_packets_buffer
         self.bandwidth = bandwidth
         self.packet_size = packet_size
         self.traffic_type = traffic_type
@@ -45,7 +45,7 @@ class UE:
         self.se = Channel.read_se_file(
             "./se/trial{}_f{}_ue{}.npy", trial_number, frequency, id
         )
-        self.buffer = Buffer(buffer_size, buffer_max_lat)
+        self.buffer = Buffer(max_packets_buffer, buffer_max_lat)
         self.traffic_throughput = traffic_throughput
         self.windows_size = windows_size
         self.plots = plots
@@ -282,7 +282,7 @@ def main():
     ue = UE(
         bs_name="test",
         id=1,
-        buffer_size=1024,
+        max_packets_buffer=1024,
         buffer_max_lat=10,
         bandwidth=100,
         packet_size=2,

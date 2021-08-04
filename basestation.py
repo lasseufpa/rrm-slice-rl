@@ -27,7 +27,7 @@ class Basestation(gym.Env):
     def __init__(
         self,
         bs_name: str,
-        buffer_size: int,
+        max_packets_buffer: int,
         buffer_max_lat: int,
         bandwidth: int,
         packet_size: int,
@@ -42,7 +42,7 @@ class Basestation(gym.Env):
         plots: bool,
     ):
         self.bs_name = bs_name
-        self.buffer_size = buffer_size
+        self.max_packets_buffer = max_packets_buffer
         self.buffer_max_lat = buffer_max_lat
         self.bandwidth = bandwidth
         self.packet_size = packet_size
@@ -156,7 +156,7 @@ class Basestation(gym.Env):
                 UE(
                     bs_name=self.bs_name,
                     id=i,
-                    buffer_size=self.buffer_size,
+                    max_packets_buffer=self.max_packets_buffer,
                     buffer_max_lat=self.buffer_max_lat,
                     bandwidth=self.bandwidth,
                     packet_size=self.packet_size,
@@ -166,7 +166,7 @@ class Basestation(gym.Env):
                     frequency=self.frequency,
                     total_number_rbs=self.total_number_rbs,
                     traffic_throughput=self.traffic_throughputs[i - 1],
-                    plots=False,
+                    plots=True,
                     seed=2021,
                     windows_size=1,
                 )
@@ -523,7 +523,7 @@ def main():
     trials = 2
     basestation = Basestation(
         bs_name="test",
-        buffer_size=1024 * 8192 * 8,
+        max_packets_buffer=1024,
         buffer_max_lat=100,
         bandwidth=100000000,
         packet_size=8192 * 8,

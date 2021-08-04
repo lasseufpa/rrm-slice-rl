@@ -230,7 +230,7 @@ def main():
         UE(
             bs_name="test",
             id=i,
-            buffer_size=1024,
+            max_packets_buffer=1024,
             buffer_max_lat=10,
             bandwidth=100,
             packet_size=2,
