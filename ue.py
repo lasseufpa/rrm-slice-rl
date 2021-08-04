@@ -144,25 +144,44 @@ class UE:
         """
         Update the variables history to enable the record to external files.
         """
+        slice_idx2 = None
         if step_number < self.windows_size:
-            slice_idx = 0
+            slice_idx1 = 0
         elif step_number >= self.windows_size:
-            slice_idx = -(self.windows_size - 1)
+            slice_idx1 = -(self.windows_size - 1)
+            if not slice_idx1:
+                slice_idx2 = 0
 
         pkt_loss_den = np.sum(
-            np.append(self.hist["pkt_rcv"][slice_idx:], packets_received)
+            np.append(self.hist["pkt_rcv"][slice_idx1:slice_idx2], packets_received)
         ) + np.sum(self.buffer.buffer)
         hist_vars = [
-            np.mean(np.append(self.hist["pkt_rcv"][slice_idx:], packets_received)),
-            np.mean(np.append(self.hist["pkt_snt"][slice_idx:], packets_sent)),
-            np.mean(np.append(self.hist["pkt_thr"][slice_idx:], packets_throughput)),
-            np.mean(np.append(self.hist["buffer_occ"][slice_idx:], buffer_occupancy)),
-            np.mean(np.append(self.hist["avg_lat"][slice_idx:], avg_latency)),
-            np.sum(np.append(self.hist["pkt_loss"][slice_idx:], pkt_loss))
+            np.mean(
+                np.append(self.hist["pkt_rcv"][slice_idx1:slice_idx2], packets_received)
+            ),
+            np.mean(
+                np.append(self.hist["pkt_snt"][slice_idx1:slice_idx2], packets_sent)
+            ),
+            np.mean(
+                np.append(
+                    self.hist["pkt_thr"][slice_idx1:slice_idx2], packets_throughput
+                )
+            ),
+            np.mean(
+                np.append(
+                    self.hist["buffer_occ"][slice_idx1:slice_idx2], buffer_occupancy
+                )
+            ),
+            np.mean(
+                np.append(self.hist["avg_lat"][slice_idx1:slice_idx2], avg_latency)
+            ),
+            np.sum(np.append(self.hist["pkt_loss"][slice_idx1:slice_idx2], pkt_loss))
             / pkt_loss_den
             if pkt_loss_den != 0
             else 0,
-            np.mean(np.append(self.hist["se"][slice_idx:], self.se[step_number])),
+            np.mean(
+                np.append(self.hist["se"][slice_idx1:slice_idx2], self.se[step_number])
+            ),
         ]
         for i, var in enumerate(self.hist.items()):
             self.hist[var[0]] = np.append(self.hist[var[0]], hist_vars[i])

@@ -166,9 +166,9 @@ class Basestation(gym.Env):
                     frequency=self.frequency,
                     total_number_rbs=self.total_number_rbs,
                     traffic_throughput=self.traffic_throughputs[i - 1],
-                    plots=True,
+                    plots=False,
                     seed=2021,
-                    windows_size=1,
+                    windows_size=100,
                 )
                 for i in np.arange(1, self.number_ues + 1)
             ]
