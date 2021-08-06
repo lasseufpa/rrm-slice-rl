@@ -167,7 +167,7 @@ class Basestation(gym.Env):
                     total_number_rbs=self.total_number_rbs,
                     traffic_throughput=self.traffic_throughputs[i - 1],
                     plots=False,
-                    seed=2021,
+                    seed=-1,
                     windows_size=100,
                 )
                 for i in np.arange(1, self.number_ues + 1)
@@ -305,6 +305,9 @@ class Basestation(gym.Env):
                 )
 
         return reward
+
+    def update_ues_traffic(self, traffics: dict) -> None:
+        self.traffic_types = traffics
 
     def create_combinations(self, total_rbs: int, number_slices: int):
         """
