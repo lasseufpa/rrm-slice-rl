@@ -4,7 +4,6 @@ from stable_baselines3.common.env_checker import check_env
 from stable_baselines3.common.evaluation import evaluate_policy
 
 from basestation import Basestation
-from basestation_callback import BasestationCallback
 
 train_param = {
     "steps_per_trial": 2000,
@@ -73,33 +72,31 @@ def create_agent(type: str, env: Basestation):
 models = ["a2c"]  # , "ppo", "dqn"]
 traffics_list = traffics.keys()
 # Training
-for model in models:
-
-    env = Basestation(
-        bs_name="{}_train".format(model),
-        max_packets_buffer=1024,
-        buffer_max_lat=100,
-        bandwidth=100000000,
-        packet_size=8192 * 8,
-        number_ues=10,
-        frequency=2,
-        total_number_rbs=17,
-        max_number_steps=train_param["steps_per_trial"],
-        max_number_trials=train_param["total_trials"],
-        traffic_types=traffic_types,
-        traffic_throughputs=traffics["light"],
-        slice_requirements=slice_requirements["light"],
-        plots=True,
-    )
-    agent = create_agent(model, env)
-    basestation_callback = BasestationCallback(traffics, slice_requirements, env)
-    agent.learn(
-        total_timesteps=int(
-            train_param["total_trials"] * 2000 * train_param["runs_per_agent"]
-        ),
-        callback=basestation_callback,
-    )
-    model[0].save("./agents/{}".format(model[0]))
+# for model in models:
+#     for run_number in range(train_param["runs_per_agent"]):
+#         env = Basestation(
+#             bs_name="{}_train/run_{}".format(model, run_number),
+#             max_packets_buffer=1024,
+#             buffer_max_lat=100,
+#             bandwidth=100000000,
+#             packet_size=8192 * 8,
+#             number_ues=10,
+#             frequency=2,
+#             total_number_rbs=17,
+#             max_number_steps=train_param["steps_per_trial"],
+#             max_number_trials=train_param["total_trials"],
+#             traffic_types=traffic_types,
+#             traffic_throughputs=traffics["light"],
+#             slice_requirements=slice_requirements["light"],
+#             plots=True,
+#         )
+#         agent = create_agent(model, env)
+#         agent.learn(
+#             total_timesteps=int(
+#                 train_param["total_trials"] * 2000 * train_param["runs_per_agent"]
+#             ),
+#         )
+#         model[0].save("./agents/{}".format(model[0]))
 
 
 # del model  # delete trained model to demonstrate loading

@@ -54,7 +54,6 @@ class Basestation(gym.Env):
         self.traffic_types = traffic_types
         self.step_number = 0
         self.trial_number = 1
-        self.run_number = 0
         self.reward = 0
         self.traffic_throughputs = traffic_throughputs
         self.slice_requirements = slice_requirements
@@ -126,7 +125,6 @@ class Basestation(gym.Env):
             self.trial_number += 1
         else:
             self.trial_number = 1
-            self.run_number += 1
         self.step_number = 0
 
         self.ues, self.slices = self.create_scenario()
@@ -160,7 +158,6 @@ class Basestation(gym.Env):
                     buffer_max_lat=self.buffer_max_lat,
                     bandwidth=self.bandwidth,
                     packet_size=self.packet_size,
-                    run_number=self.run_number,
                     trial_number=self.trial_number,
                     traffic_type=self.traffic_types[i - 1],
                     frequency=self.frequency,
@@ -182,7 +179,6 @@ class Basestation(gym.Env):
                     bs_name=self.bs_name,
                     id=i,
                     name=values[i - 1],
-                    run_number=self.run_number,
                     trial_number=self.trial_number,
                     ues=ues[indexes == (i - 1)],
                     plots=False,
@@ -340,9 +336,7 @@ class Basestation(gym.Env):
         """
         Save variables history to external file.
         """
-        path = ("./hist/{}/run_{}/trial{}/").format(
-            self.bs_name, self.run_number, self.trial_number
-        )
+        path = ("./hist/{}/trial{}/").format(self.bs_name, self.trial_number)
         try:
             os.makedirs(path)
         except OSError:
@@ -352,20 +346,17 @@ class Basestation(gym.Env):
         if self.plots:
             Basestation.plot_metrics(
                 self.bs_name,
-                self.run_number,
                 self.trial_number,
                 self.slices.shape[0],
                 self.ues.shape[0],
             )
 
     @staticmethod
-    def read_hist(bs_name: str, run_number: int, trial_number: int) -> tuple:
+    def read_hist(bs_name: str, trial_number: int) -> tuple:
         """
         Read variables history from external file.
         """
-        path = "./hist/{}/run_{}/trial{}/bs.npz".format(
-            bs_name, run_number, trial_number
-        )
+        path = "./hist/{}/trial{}/bs.npz".format(bs_name, trial_number)
         data = np.load(path)
         return (
             data.f.actions.T,
@@ -375,7 +366,6 @@ class Basestation(gym.Env):
     @staticmethod
     def plot_metrics(
         bs_name: str,
-        run_number: int,
         trial_number: int,
         max_slice_id: int,
         step: int = 1,
@@ -415,9 +405,7 @@ class Basestation(gym.Env):
                 plt.ylabel(y_labels[plot_number], fontsize=14)
                 plt.grid()
                 for slice_id in range(1, max_slice_id + 1):
-                    hist = Slice.read_hist(bs_name, run_number, trial_number, slice_id)[
-                        plot_number
-                    ]
+                    hist = Slice.read_hist(bs_name, trial_number, slice_id)[plot_number]
                     hist = (
                         Basestation.packets_to_mbps(8192 * 8, hist)
                         if plot_number in [0, 1, 2, 6, 7]
@@ -431,8 +419,8 @@ class Basestation(gym.Env):
                 fig.tight_layout()
                 plt.legend(fontsize=12)
                 fig.savefig(
-                    "./hist/{}/run_{}/trial{}/{}.pdf".format(
-                        bs_name, run_number, trial_number, filenames[plot_number]
+                    "./hist/{}/trial{}/{}.pdf".format(
+                        bs_name, trial_number, filenames[plot_number]
                     ),
                     # bbox_inches="tight",
                     pad_inches=0,
@@ -458,9 +446,7 @@ class Basestation(gym.Env):
                 fig = plt.figure(figsize=(w, h))
                 plt.xlabel(x_label, fontsize=14)
                 plt.ylabel(y_labels[plot_number], fontsize=14)
-                hist = Basestation.read_hist(bs_name, run_number, trial_number)[
-                    plot_number
-                ]
+                hist = Basestation.read_hist(bs_name, trial_number)[plot_number]
                 if y_labels[plot_number] == "# RBs":
                     for slice_id in range(0, max_slice_id):
                         plt.plot(
@@ -477,8 +463,8 @@ class Basestation(gym.Env):
                 fig.tight_layout()
                 plt.grid()
                 fig.savefig(
-                    "./hist/{}/run_{}/trial{}/{}.pdf".format(
-                        bs_name, run_number, trial_number, filenames[plot_number]
+                    "./hist/{}/trial{}/{}.pdf".format(
+                        bs_name, trial_number, filenames[plot_number]
                     ),
                     bbox_inches="tight",
                     pad_inches=0,

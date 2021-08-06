@@ -22,7 +22,6 @@ class UE:
         buffer_max_lat: int,
         bandwidth: float,
         packet_size: int,
-        run_number: int,
         trial_number: int,
         traffic_type: str,
         frequency: int,
@@ -34,7 +33,6 @@ class UE:
     ) -> None:
         self.bs_name = bs_name
         self.id = id
-        self.run_number = run_number
         self.trial_number = trial_number
         self.max_packets_buffer = max_packets_buffer
         self.bandwidth = bandwidth
@@ -190,9 +188,7 @@ class UE:
         """
         Save variables history to external file.
         """
-        path = "./hist/{}/run_{}/trial{}/ues/".format(
-            self.bs_name, self.run_number, self.trial_number
-        )
+        path = "./hist/{}/trial{}/ues/".format(self.bs_name, self.trial_number)
         try:
             os.makedirs(path)
         except OSError:
@@ -200,18 +196,14 @@ class UE:
 
         np.savez_compressed((path + "ue{}").format(self.id), **self.hist)
         if self.plots:
-            UE.plot_metrics(self.bs_name, self.run_number, self.trial_number, self.id)
+            UE.plot_metrics(self.bs_name, self.trial_number, self.id)
 
     @staticmethod
-    def read_hist(
-        bs_name: str, run_number: int, trial_number: int, ue_id: int
-    ) -> np.array:
+    def read_hist(bs_name: str, trial_number: int, ue_id: int) -> np.array:
         """
         Read variables history from external file.
         """
-        path = "./hist/{}/run_{}/trial{}/ues/ue{}.npz".format(
-            bs_name, run_number, trial_number, ue_id
-        )
+        path = "./hist/{}/trial{}/ues/ue{}.npz".format(bs_name, trial_number, ue_id)
         data = np.load(path)
         return np.array(
             [
@@ -226,14 +218,12 @@ class UE:
         )
 
     @staticmethod
-    def plot_metrics(
-        bs_name: str, run_number: int, trial_number: int, ue_id: int
-    ) -> None:
+    def plot_metrics(bs_name: str, trial_number: int, ue_id: int) -> None:
         """
         Plot UE performance obtained over a specific trial. Read the
         information from external file.
         """
-        hist = UE.read_hist(bs_name, run_number, trial_number, ue_id)
+        hist = UE.read_hist(bs_name, trial_number, ue_id)
 
         title_labels = [
             "Received Packets",
@@ -265,9 +255,7 @@ class UE:
             ax.grid()
         fig.tight_layout()
         fig.savefig(
-            "./hist/{}/run_{}/trial{}/ues/ue{}.png".format(
-                bs_name, run_number, trial_number, ue_id
-            ),
+            "./hist/{}/trial{}/ues/ue{}.png".format(bs_name, trial_number, ue_id),
             bbox_inches="tight",
             pad_inches=0,
             format="png",
@@ -305,7 +293,6 @@ def main():
         buffer_max_lat=10,
         bandwidth=100,
         packet_size=2,
-        run_number=1,
         trial_number=1,
         traffic_type="embb",
         frequency=1,

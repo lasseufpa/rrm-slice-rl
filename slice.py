@@ -20,7 +20,6 @@ class Slice:
         bs_name: str,
         id: int,
         name: str,
-        run_number: int,
         trial_number: int,
         ues: list,
         plots: bool,
@@ -28,7 +27,6 @@ class Slice:
         self.bs_name = bs_name
         self.id = id
         self.name = name
-        self.run_number = run_number
         self.trial_number = trial_number
         self.ues = ues
         self.plots = plots
@@ -103,9 +101,7 @@ class Slice:
         """
         Save slice variables history to external file.
         """
-        path = "./hist/{}/run_{}/trial{}/slices/".format(
-            self.bs_name, self.run_number, self.trial_number
-        )
+        path = "./hist/{}/trial{}/slices/".format(self.bs_name, self.trial_number)
         try:
             os.makedirs(path)
         except OSError:
@@ -113,19 +109,15 @@ class Slice:
 
         np.savez_compressed((path + "slice{}").format(self.id), **self.hist)
         if self.plots:
-            Slice.plot_metrics(
-                self.bs_name, self.run_number, self.trial_number, self.id
-            )
+            Slice.plot_metrics(self.bs_name, self.trial_number, self.id)
 
     @staticmethod
-    def read_hist(
-        bs_name: str, run_number: int, trial_number: int, slice_id: int
-    ) -> None:
+    def read_hist(bs_name: str, trial_number: int, slice_id: int) -> None:
         """
         Read slice variables history from external file.
         """
-        path = "./hist/{}/run_{}/trial{}/slices/slice{}.npz".format(
-            bs_name, run_number, trial_number, slice_id
+        path = "./hist/{}/trial{}/slices/slice{}.npz".format(
+            bs_name, trial_number, slice_id
         )
         data = np.load(path)
         return np.array(
@@ -142,14 +134,12 @@ class Slice:
         )
 
     @staticmethod
-    def plot_metrics(
-        bs_name: str, run_number: int, trial_number: int, slice_id: int
-    ) -> None:
+    def plot_metrics(bs_name: str, trial_number: int, slice_id: int) -> None:
         """
         Plot slice performance obtained over a specific trial. Read the
         information from external file.
         """
-        hist = Slice.read_hist(bs_name, run_number, trial_number, slice_id)
+        hist = Slice.read_hist(bs_name, trial_number, slice_id)
 
         title_labels = [
             "Received Packets",
@@ -181,8 +171,8 @@ class Slice:
             ax.grid()
         fig.tight_layout()
         fig.savefig(
-            "./hist/{}/run_{}/trial{}/slices/slice{}.png".format(
-                bs_name, run_number, trial_number, slice_id
+            "./hist/{}/trial{}/slices/slice{}.png".format(
+                bs_name, trial_number, slice_id
             ),
             bbox_inches="tight",
             pad_inches=0,
@@ -234,7 +224,6 @@ def main():
             buffer_max_lat=10,
             bandwidth=100,
             packet_size=2,
-            run_number=1,
             trial_number=1,
             traffic_type="embb",
             frequency=1,
@@ -250,7 +239,6 @@ def main():
         bs_name="test",
         id=1,
         name="slice_name",
-        run_number=1,
         trial_number=1,
         ues=ues,
         plots=False,
