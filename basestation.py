@@ -39,6 +39,7 @@ class Basestation(gym.Env):
         traffic_types: np.array,
         traffic_throughputs: np.array,
         slice_requirements: dict,
+        seed: int,
         plots: bool,
     ):
         self.bs_name = bs_name
@@ -57,6 +58,7 @@ class Basestation(gym.Env):
         self.reward = 0
         self.traffic_throughputs = traffic_throughputs
         self.slice_requirements = slice_requirements
+        self.seed = seed
         self.plots = plots
 
         self.ues, self.slices = self.create_scenario()
@@ -164,7 +166,7 @@ class Basestation(gym.Env):
                     total_number_rbs=self.total_number_rbs,
                     traffic_throughput=self.traffic_throughputs[i - 1],
                     plots=False,
-                    seed=-1,
+                    seed=-1 if self.seed == -1 else self.seed + self.trial_number,
                     windows_size=100,
                 )
                 for i in np.arange(1, self.number_ues + 1)
@@ -524,6 +526,7 @@ def main():
         traffic_types=traffic_types,
         traffic_throughputs=traffic_throughputs,
         slice_requirements=slice_requirements,
+        seed=-1,
         plots=True,
     )
 

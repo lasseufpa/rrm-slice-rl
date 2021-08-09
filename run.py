@@ -76,6 +76,7 @@ def create_agent(type: str, mode: str):
         traffic_types=traffic_types,
         traffic_throughputs=traffics["light"],
         slice_requirements=slice_requirements["light"],
+        seed=-1,
         plots=True,
     )
     if mode == "train":
@@ -104,35 +105,34 @@ models = ["a2c"]  # , "ppo", "dqn"]
 traffics_list = traffics.keys()
 
 # Training
-# for model in models:
-#     agent = create_agent(model, "train")
-#     for traffic_behavior in traffics_list:
-#         for run_number in range(1, train_param["runs_per_agent"] + 1):
-#             env = Basestation(
-#                 bs_name="{}_train/{}/run_{}".format(
-#                     model, traffic_behavior, run_number
-#                 ),
-#                 max_packets_buffer=1024,
-#                 buffer_max_lat=100,
-#                 bandwidth=100000000,
-#                 packet_size=8192 * 8,
-#                 number_ues=10,
-#                 frequency=2,
-#                 total_number_rbs=17,
-#                 max_number_steps=train_param["steps_per_trial"],
-#                 max_number_trials=train_param["total_trials"],
-#                 traffic_types=traffic_types,
-#                 traffic_throughputs=traffics[traffic_behavior],
-#                 slice_requirements=slice_requirements[traffic_behavior],
-#                 plots=True,
-#             )
-#             agent.set_env(env)
-#             agent.learn(
-#                 total_timesteps=int(
-#                     train_param["total_trials"] * train_param["steps_per_trial"]
-#                 ),
-#             )
-#     agent.save("./agents/{}".format(model))
+for model in models:
+    agent = create_agent(model, "train")
+    for traffic_behavior in traffics_list:
+        for run_number in range(1, train_param["runs_per_agent"] + 1):
+            env = Basestation(
+                bs_name="{}_train/{}/run{}".format(model, traffic_behavior, run_number),
+                max_packets_buffer=1024,
+                buffer_max_lat=100,
+                bandwidth=100000000,
+                packet_size=8192 * 8,
+                number_ues=10,
+                frequency=2,
+                total_number_rbs=17,
+                max_number_steps=train_param["steps_per_trial"],
+                max_number_trials=train_param["total_trials"],
+                traffic_types=traffic_types,
+                traffic_throughputs=traffics[traffic_behavior],
+                slice_requirements=slice_requirements[traffic_behavior],
+                seed=(run_number - 1) * test_param["total_trials"],
+                plots=True,
+            )
+            agent.set_env(env)
+            agent.learn(
+                total_timesteps=int(
+                    train_param["total_trials"] * train_param["steps_per_trial"]
+                ),
+            )
+    agent.save("./agents/{}".format(model))
 
 # Test
 for model in models:
@@ -140,7 +140,7 @@ for model in models:
     for traffic_behavior in traffics_list:
         for run_number in range(1, test_param["runs_per_agent"] + 1):
             env = Basestation(
-                bs_name="{}_test/{}/run_{}".format(model, traffic_behavior, run_number),
+                bs_name="{}_test/{}/run{}".format(model, traffic_behavior, run_number),
                 max_packets_buffer=1024,
                 buffer_max_lat=100,
                 bandwidth=100000000,
@@ -153,6 +153,7 @@ for model in models:
                 traffic_types=traffic_types,
                 traffic_throughputs=traffics[traffic_behavior],
                 slice_requirements=slice_requirements[traffic_behavior],
+                seed=(run_number - 1) * test_param["total_trials"],
                 plots=True,
             )
             agent.set_env(env)
