@@ -8,13 +8,14 @@ from basestation import Basestation
 train_param = {
     "steps_per_trial": 2000,
     "total_trials": 2,
-    "train_init_trial": 1,
     "runs_per_agent": 2,
 }
 
 test_param = {
+    "steps_per_trial": 2000,
     "total_trials": 50,
-    "train_init_trial": 45,
+    "initial_trial": 50,
+    "runs_per_agent": 2,
 }
 
 # Create environment
@@ -60,72 +61,106 @@ traffic_types = np.concatenate(
 
 
 # Instantiate the agent
-def create_agent(type: str, env: Basestation):
-    if type == "a2c":
-        return A2C("MlpPolicy", env, verbose=1, tensorboard_log="./tensorboard-logs/")
-    elif type == "ppo":
-        return PPO("MlpPolicy", env, verbose=1, tensorboard_log="./tensorboard-logs/")
-    elif type == "dqn":
-        return DQN("MlpPolicy", env, verbose=1, tensorboard_log="./tensorboard-logs/")
+def create_agent(type: str, mode: str):
+    env = Basestation(
+        bs_name="dummy",
+        max_packets_buffer=1024,
+        buffer_max_lat=100,
+        bandwidth=100000000,
+        packet_size=8192 * 8,
+        number_ues=10,
+        frequency=2,
+        total_number_rbs=17,
+        max_number_steps=train_param["steps_per_trial"],
+        max_number_trials=train_param["total_trials"],
+        traffic_types=traffic_types,
+        traffic_throughputs=traffics["light"],
+        slice_requirements=slice_requirements["light"],
+        plots=True,
+    )
+    if mode == "train":
+        if type == "a2c":
+            return A2C(
+                "MlpPolicy", env, verbose=1, tensorboard_log="./tensorboard-logs/"
+            )
+        elif type == "ppo":
+            return PPO(
+                "MlpPolicy", env, verbose=1, tensorboard_log="./tensorboard-logs/"
+            )
+        elif type == "dqn":
+            return DQN(
+                "MlpPolicy", env, verbose=1, tensorboard_log="./tensorboard-logs/"
+            )
+    elif mode == "test":
+        if type == "a2c":
+            return A2C.load("./agents/a2c", env)
+        elif type == "ppo":
+            return PPO.load("./agents/ppo", env)
+        elif type == "dqn":
+            return DQN.load("./agents/dqn", env)
 
 
 models = ["a2c"]  # , "ppo", "dqn"]
 traffics_list = traffics.keys()
+
 # Training
 # for model in models:
-#     for run_number in range(train_param["runs_per_agent"]):
-#         env = Basestation(
-#             bs_name="{}_train/run_{}".format(model, run_number),
-#             max_packets_buffer=1024,
-#             buffer_max_lat=100,
-#             bandwidth=100000000,
-#             packet_size=8192 * 8,
-#             number_ues=10,
-#             frequency=2,
-#             total_number_rbs=17,
-#             max_number_steps=train_param["steps_per_trial"],
-#             max_number_trials=train_param["total_trials"],
-#             traffic_types=traffic_types,
-#             traffic_throughputs=traffics["light"],
-#             slice_requirements=slice_requirements["light"],
-#             plots=True,
-#         )
-#         agent = create_agent(model, env)
-#         agent.learn(
-#             total_timesteps=int(
-#                 train_param["total_trials"] * 2000 * train_param["runs_per_agent"]
-#             ),
-#         )
-#         model[0].save("./agents/{}".format(model[0]))
+#     agent = create_agent(model, "train")
+#     for traffic_behavior in traffics_list:
+#         for run_number in range(1, train_param["runs_per_agent"] + 1):
+#             env = Basestation(
+#                 bs_name="{}_train/{}/run_{}".format(
+#                     model, traffic_behavior, run_number
+#                 ),
+#                 max_packets_buffer=1024,
+#                 buffer_max_lat=100,
+#                 bandwidth=100000000,
+#                 packet_size=8192 * 8,
+#                 number_ues=10,
+#                 frequency=2,
+#                 total_number_rbs=17,
+#                 max_number_steps=train_param["steps_per_trial"],
+#                 max_number_trials=train_param["total_trials"],
+#                 traffic_types=traffic_types,
+#                 traffic_throughputs=traffics[traffic_behavior],
+#                 slice_requirements=slice_requirements[traffic_behavior],
+#                 plots=True,
+#             )
+#             agent.set_env(env)
+#             agent.learn(
+#                 total_timesteps=int(
+#                     train_param["total_trials"] * train_param["steps_per_trial"]
+#                 ),
+#             )
+#     agent.save("./agents/{}".format(model))
 
-
-# del model  # delete trained model to demonstrate loading
-
-# # Load the trained agent
-# env = Basestation(
-#     "test",
-#     1024 * 8192 * 8,
-#     100,
-#     100000000,
-#     8192 * 8,
-#     10,
-#     2,
-#     17,
-#     2000,
-#     trials,
-#     traffic_types,
-#     traffic_throughputs,
-#     slice_requirements,
-#     True,
-# )
-# model = A2C.load("dqn_rrm", env)
-
-# # Evaluate the agent
-# mean_reward, std_reward = evaluate_policy(model, model.get_env(), n_eval_episodes=2)
-
-# # Enjoy trained agent
-# obs = env.reset()
-# for i in range(1000):
-#     action, _states = model.predict(obs)
-#     obs, rewards, dones, info = env.step(action)
-#     env.render()
+# Test
+for model in models:
+    agent = create_agent(model, "test")
+    for traffic_behavior in traffics_list:
+        for run_number in range(1, test_param["runs_per_agent"] + 1):
+            env = Basestation(
+                bs_name="{}_test/{}/run_{}".format(model, traffic_behavior, run_number),
+                max_packets_buffer=1024,
+                buffer_max_lat=100,
+                bandwidth=100000000,
+                packet_size=8192 * 8,
+                number_ues=10,
+                frequency=2,
+                total_number_rbs=17,
+                max_number_steps=test_param["steps_per_trial"],
+                max_number_trials=test_param["total_trials"],
+                traffic_types=traffic_types,
+                traffic_throughputs=traffics[traffic_behavior],
+                slice_requirements=slice_requirements[traffic_behavior],
+                plots=True,
+            )
+            agent.set_env(env)
+            obs = env.reset(test_param["initial_trial"])
+            for _ in range(
+                test_param["total_trials"] - test_param["initial_trial"] + 1
+            ):
+                for _ in range(test_param["steps_per_trial"]):
+                    action, _states = agent.predict(obs)
+                    obs, rewards, dones, info = env.step(action)
+                env.reset()

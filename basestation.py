@@ -112,7 +112,7 @@ class Basestation(gym.Env):
             {},
         )
 
-    def reset(self):
+    def reset(self, initial_trial: int = -1):
         """
         Reset the UEs and Slices to enable the environment to start other
         episode without past residuous. The reset function increases
@@ -124,7 +124,7 @@ class Basestation(gym.Env):
         ):
             self.trial_number += 1
         else:
-            self.trial_number = 1
+            self.trial_number = 1 if initial_trial == -1 else initial_trial
         self.step_number = 0
 
         self.ues, self.slices = self.create_scenario()
