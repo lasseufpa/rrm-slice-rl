@@ -65,19 +65,11 @@ traffic_types = np.concatenate(
 def create_agent(type: str, mode: str):
     env = Basestation(
         bs_name="dummy",
-        max_packets_buffer=1024,
-        buffer_max_lat=100,
-        bandwidth=100000000,
-        packet_size=8192 * 8,
-        number_ues=10,
-        frequency=2,
-        total_number_rbs=17,
         max_number_steps=train_param["steps_per_trial"],
         max_number_trials=train_param["total_trials"],
         traffic_types=traffic_types,
         traffic_throughputs=traffics["light"],
         slice_requirements=slice_requirements["light"],
-        seed=-1,
         plots=True,
     )
     if mode == "train":
@@ -118,13 +110,6 @@ for model in models:
         for run_number in range(1, train_param["runs_per_agent"] + 1):
             env = Basestation(
                 bs_name="{}_train/{}/run{}".format(model, traffic_behavior, run_number),
-                max_packets_buffer=1024,
-                buffer_max_lat=100,
-                bandwidth=100000000,
-                packet_size=8192 * 8,
-                number_ues=10,
-                frequency=2,
-                total_number_rbs=17,
                 max_number_steps=train_param["steps_per_trial"],
                 max_number_trials=train_param["total_trials"],
                 traffic_types=traffic_types,
@@ -150,13 +135,6 @@ for model in models_test:
         for run_number in range(1, test_param["runs_per_agent"] + 1):
             env = Basestation(
                 bs_name="{}_test/{}/run{}".format(model, traffic_behavior, run_number),
-                max_packets_buffer=1024,
-                buffer_max_lat=100,
-                bandwidth=100000000,
-                packet_size=8192 * 8,
-                number_ues=10,
-                frequency=2,
-                total_number_rbs=17,
                 max_number_steps=test_param["steps_per_trial"],
                 max_number_trials=test_param["total_trials"],
                 traffic_types=traffic_types,

@@ -26,21 +26,21 @@ class Basestation(gym.Env):
     def __init__(
         self,
         bs_name: str,
-        max_packets_buffer: int,
-        buffer_max_lat: int,
-        bandwidth: int,
-        packet_size: int,
-        number_ues: int,
-        frequency: int,
-        total_number_rbs: int,
-        max_number_steps: int,
-        max_number_trials: int,
         traffic_types: np.array,
         traffic_throughputs: np.array,
         slice_requirements: dict,
-        seed: int,
-        plots: bool,
-    ):
+        max_packets_buffer: int = 1024,
+        buffer_max_lat: int = 100,
+        bandwidth: int = 100000000,
+        packet_size: int = 8192 * 8,
+        number_ues: int = 10,
+        frequency: int = 2,
+        total_number_rbs: int = 17,
+        max_number_steps: int = 2000,
+        max_number_trials: int = 50,
+        seed: int = -1,
+        plots: bool = False,
+    ) -> None:
         self.bs_name = bs_name
         self.max_packets_buffer = max_packets_buffer
         self.buffer_max_lat = buffer_max_lat
@@ -513,19 +513,10 @@ def main():
     trials = 2
     basestation = Basestation(
         bs_name="test",
-        max_packets_buffer=1024,
-        buffer_max_lat=100,
-        bandwidth=100000000,
-        packet_size=8192 * 8,
-        number_ues=10,
-        frequency=2,
-        total_number_rbs=17,
-        max_number_steps=2000,
         max_number_trials=trials,
         traffic_types=traffic_types,
         traffic_throughputs=traffic_throughputs,
         slice_requirements=slice_requirements,
-        seed=-1,
         plots=True,
     )
 
