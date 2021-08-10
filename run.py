@@ -3,6 +3,7 @@ from stable_baselines3 import A2C, DQN, PPO
 from stable_baselines3.common.env_checker import check_env
 from stable_baselines3.common.evaluation import evaluate_policy
 
+from baselines import BaselineAgent
 from basestation import Basestation
 
 train_param = {
@@ -99,6 +100,12 @@ def create_agent(type: str, mode: str):
             return PPO.load("./agents/ppo", env)
         elif type == "dqn":
             return DQN.load("./agents/dqn", env)
+        elif type == "mt":
+            return BaselineAgent("mt")
+        elif type == "pf":
+            return BaselineAgent("pf")
+        elif type == "rr":
+            return BaselineAgent("rr")
 
 
 models = ["a2c"]  # , "ppo", "dqn"]
@@ -135,7 +142,9 @@ for model in models:
     agent.save("./agents/{}".format(model))
 
 # Test
-for model in models:
+models_test = np.append(models, ["mt", "rr", "pf"])
+# models_test = ["pf"]  # , "rr", "mt"]
+for model in models_test:
     agent = create_agent(model, "test")
     for traffic_behavior in traffics_list:
         for run_number in range(1, test_param["runs_per_agent"] + 1):
