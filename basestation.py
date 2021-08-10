@@ -1,6 +1,5 @@
 import os
 from itertools import product
-from typing import Tuple
 
 import gym
 import matplotlib.pyplot as plt
