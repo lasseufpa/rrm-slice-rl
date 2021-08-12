@@ -155,18 +155,12 @@ class Basestation(gym.Env):
                 UE(
                     bs_name=self.bs_name,
                     id=i,
-                    max_packets_buffer=self.max_packets_buffer,
-                    buffer_max_lat=self.buffer_max_lat,
-                    bandwidth=self.bandwidth,
-                    packet_size=self.packet_size,
                     trial_number=self.trial_number,
                     traffic_type=self.traffic_types[i - 1],
-                    frequency=self.frequency,
-                    total_number_rbs=self.total_number_rbs,
                     traffic_throughput=self.traffic_throughputs[i - 1],
-                    plots=False,
+                    plots=True,
                     seed=-1 if self.seed == -1 else self.seed + self.trial_number,
-                    windows_size=100,
+                    windows_size=1,
                 )
                 for i in np.arange(1, self.number_ues + 1)
             ]
@@ -182,7 +176,7 @@ class Basestation(gym.Env):
                     name=values[i - 1],
                     trial_number=self.trial_number,
                     ues=ues[indexes == (i - 1)],
-                    plots=False,
+                    plots=True,
                 )
                 for i in range(1, len(values) + 1)
             ]

@@ -18,17 +18,17 @@ class UE:
         self,
         bs_name: str,
         id: int,
-        max_packets_buffer: int,
-        buffer_max_lat: int,
-        bandwidth: float,
-        packet_size: int,
         trial_number: int,
         traffic_type: str,
-        frequency: int,
-        total_number_rbs: int,
         traffic_throughput: float,
-        plots: bool,
-        seed: int,  # - 1 represents no fixed seed
+        max_packets_buffer: int = 1024,
+        buffer_max_lat: int = 100,
+        bandwidth: float = 100000000,
+        packet_size: int = 8192 * 8,
+        frequency: int = 2,
+        total_number_rbs: int = 17,
+        plots: bool = False,
+        seed: int = -1,  # - 1 represents no fixed seed
         windows_size: int = 100,
     ) -> None:
         self.bs_name = bs_name
