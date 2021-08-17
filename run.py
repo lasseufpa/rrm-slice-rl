@@ -104,31 +104,32 @@ models = ["a2c"]  # , "ppo", "dqn"]
 traffics_list = traffics.keys()
 
 # Training
-for model in models:
-    agent = create_agent(model, "train")
-    for traffic_behavior in traffics_list:
-        for run_number in range(1, train_param["runs_per_agent"] + 1):
-            env = Basestation(
-                bs_name="{}_train/{}/run{}".format(model, traffic_behavior, run_number),
-                max_number_steps=train_param["steps_per_trial"],
-                max_number_trials=train_param["total_trials"],
-                traffic_types=traffic_types,
-                traffic_throughputs=traffics[traffic_behavior],
-                slice_requirements=slice_requirements[traffic_behavior],
-                seed=(run_number - 1) * test_param["total_trials"],
-                plots=True,
-            )
-            agent.set_env(env)
-            agent.learn(
-                total_timesteps=int(
-                    train_param["total_trials"] * train_param["steps_per_trial"]
-                ),
-            )
-    agent.save("./agents/{}".format(model))
+# for model in models:
+#     agent = create_agent(model, "train")
+#     for traffic_behavior in traffics_list:
+#         for run_number in range(1, train_param["runs_per_agent"] + 1):
+#             env = Basestation(
+#                 bs_name="{}_train/{}/run{}".format(model, traffic_behavior, run_number),
+#                 max_number_steps=train_param["steps_per_trial"],
+#                 max_number_trials=train_param["total_trials"],
+#                 traffic_types=traffic_types,
+#                 traffic_throughputs=traffics[traffic_behavior],
+#                 slice_requirements=slice_requirements[traffic_behavior],
+#                 windows_size = 100,
+#                 seed=(run_number - 1) * test_param["total_trials"],
+#                 plots=True,
+#             )
+#             agent.set_env(env)
+#             agent.learn(
+#                 total_timesteps=int(
+#                     train_param["total_trials"] * train_param["steps_per_trial"]
+#                 ),
+#             )
+#     agent.save("./agents/{}".format(model))
 
 # Test
-models_test = np.append(models, ["mt", "rr", "pf"])
-# models_test = ["pf"]  # , "rr", "mt"]
+# models_test = np.append(models, ["mt", "rr", "pf"])
+models_test = ["rr"]  # , "rr", "mt"]
 for model in models_test:
     agent = create_agent(model, "test")
     for traffic_behavior in traffics_list:
@@ -140,6 +141,7 @@ for model in models_test:
                 traffic_types=traffic_types,
                 traffic_throughputs=traffics[traffic_behavior],
                 slice_requirements=slice_requirements[traffic_behavior],
+                windows_size=100,
                 seed=(run_number - 1) * test_param["total_trials"],
                 plots=True,
             )

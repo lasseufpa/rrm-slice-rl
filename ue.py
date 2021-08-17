@@ -58,6 +58,7 @@ class UE:
             "se",
         ]
         self.hist = {hist_label: np.array([]) for hist_label in self.hist_labels}
+        self.tmp_hist = {hist_label: np.array([]) for hist_label in self.hist_labels}
         self.rng = (
             np.random.default_rng(seed) if seed != -1 else np.random.default_rng()
         )
@@ -141,7 +142,22 @@ class UE:
     ) -> None:
         """
         Update the variables history to enable the record to external files.
+        It creates a tmp_hist that records the history of UE variables without
+        using a windows calculation and it is used as basis to calculate the
+        hist variable using windows average.
         """
+        hist_vars = [
+            packets_received,
+            packets_sent,
+            packets_throughput,
+            buffer_occupancy,
+            avg_latency,
+            pkt_loss,
+            self.se[step_number],
+        ]
+        for i, var in enumerate(self.tmp_hist.items()):
+            self.tmp_hist[var[0]] = np.append(self.tmp_hist[var[0]], hist_vars[i])
+
         slice_idx2 = None
         if step_number < self.windows_size:
             slice_idx1 = 0
@@ -151,34 +167,40 @@ class UE:
                 slice_idx2 = 0
 
         pkt_loss_den = np.sum(
-            np.append(self.hist["pkt_rcv"][slice_idx1:slice_idx2], packets_received)
-        ) + np.sum(self.buffer.buffer)
+            np.append(self.tmp_hist["pkt_rcv"][slice_idx1:slice_idx2], packets_received)
+        )
         hist_vars = [
             np.mean(
-                np.append(self.hist["pkt_rcv"][slice_idx1:slice_idx2], packets_received)
+                np.append(
+                    self.tmp_hist["pkt_rcv"][slice_idx1:slice_idx2], packets_received
+                )
             ),
             np.mean(
-                np.append(self.hist["pkt_snt"][slice_idx1:slice_idx2], packets_sent)
+                np.append(self.tmp_hist["pkt_snt"][slice_idx1:slice_idx2], packets_sent)
             ),
             np.mean(
                 np.append(
-                    self.hist["pkt_thr"][slice_idx1:slice_idx2], packets_throughput
+                    self.tmp_hist["pkt_thr"][slice_idx1:slice_idx2], packets_throughput
                 )
             ),
             np.mean(
                 np.append(
-                    self.hist["buffer_occ"][slice_idx1:slice_idx2], buffer_occupancy
+                    self.tmp_hist["buffer_occ"][slice_idx1:slice_idx2], buffer_occupancy
                 )
             ),
             np.mean(
-                np.append(self.hist["avg_lat"][slice_idx1:slice_idx2], avg_latency)
+                np.append(self.tmp_hist["avg_lat"][slice_idx1:slice_idx2], avg_latency)
             ),
-            np.sum(np.append(self.hist["pkt_loss"][slice_idx1:slice_idx2], pkt_loss))
+            np.sum(
+                np.append(self.tmp_hist["pkt_loss"][slice_idx1:slice_idx2], pkt_loss)
+            )
             / pkt_loss_den
             if pkt_loss_den != 0
             else 0,
             np.mean(
-                np.append(self.hist["se"][slice_idx1:slice_idx2], self.se[step_number])
+                np.append(
+                    self.tmp_hist["se"][slice_idx1:slice_idx2], self.se[step_number]
+                )
             ),
         ]
         for i, var in enumerate(self.hist.items()):

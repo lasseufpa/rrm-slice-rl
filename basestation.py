@@ -38,6 +38,7 @@ class Basestation(gym.Env):
         total_number_rbs: int = 17,
         max_number_steps: int = 2000,
         max_number_trials: int = 50,
+        windows_size: int = 100,
         seed: int = -1,
         plots: bool = False,
     ) -> None:
@@ -57,6 +58,7 @@ class Basestation(gym.Env):
         self.reward = 0
         self.traffic_throughputs = traffic_throughputs
         self.slice_requirements = slice_requirements
+        self.windows_size = windows_size
         self.seed = seed
         self.plots = plots
 
@@ -160,7 +162,7 @@ class Basestation(gym.Env):
                     traffic_throughput=self.traffic_throughputs[i - 1],
                     plots=True,
                     seed=-1 if self.seed == -1 else self.seed + self.trial_number,
-                    windows_size=1,
+                    windows_size=self.windows_size,
                 )
                 for i in np.arange(1, self.number_ues + 1)
             ]
