@@ -61,6 +61,11 @@ class Basestation(gym.Env):
         self.windows_size = windows_size
         self.seed = seed
         self.plots = plots
+        self.rng = (
+            np.random.default_rng(int(np.rint(seed * 10000)))
+            if seed != -1
+            else np.random.default_rng()
+        )
 
         self.ues, self.slices = self.create_scenario()
         self.action_space_options = self.create_combinations(
@@ -161,7 +166,7 @@ class Basestation(gym.Env):
                     traffic_type=self.traffic_types[i - 1],
                     traffic_throughput=self.traffic_throughputs[i - 1],
                     plots=True,
-                    seed=-1 if self.seed == -1 else self.seed + self.trial_number,
+                    seed=-1 if self.seed == -1 else self.rng.random(),
                     windows_size=self.windows_size,
                 )
                 for i in np.arange(1, self.number_ues + 1)

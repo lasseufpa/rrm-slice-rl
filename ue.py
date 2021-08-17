@@ -60,7 +60,9 @@ class UE:
         self.hist = {hist_label: np.array([]) for hist_label in self.hist_labels}
         self.tmp_hist = {hist_label: np.array([]) for hist_label in self.hist_labels}
         self.rng = (
-            np.random.default_rng(seed) if seed != -1 else np.random.default_rng()
+            np.random.default_rng(int(np.rint(seed * 10000)))
+            if seed != -1
+            else np.random.default_rng()
         )
 
     def define_traffic_function(self):

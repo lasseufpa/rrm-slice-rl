@@ -102,6 +102,8 @@ def create_agent(type: str, mode: str):
 
 models = ["a2c"]  # , "ppo", "dqn"]
 traffics_list = traffics.keys()
+seed = 10
+rng = np.random.default_rng(seed) if seed != -1 else np.random.default_rng()
 
 # Training
 # for model in models:
@@ -116,7 +118,7 @@ traffics_list = traffics.keys()
 #                 traffic_throughputs=traffics[traffic_behavior],
 #                 slice_requirements=slice_requirements[traffic_behavior],
 #                 windows_size = 100,
-#                 seed=(run_number - 1) * test_param["total_trials"],
+#                 seed=rng.random(),
 #                 plots=True,
 #             )
 #             agent.set_env(env)
@@ -142,7 +144,7 @@ for model in models_test:
                 traffic_throughputs=traffics[traffic_behavior],
                 slice_requirements=slice_requirements[traffic_behavior],
                 windows_size=100,
-                seed=(run_number - 1) * test_param["total_trials"],
+                seed=rng.random(),
                 plots=True,
             )
             agent.set_env(env)
