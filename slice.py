@@ -43,6 +43,7 @@ class Slice:
         self.hist = {hist_label: np.array([]) for hist_label in self.hist_labels}
         self.ues_order = []
         self.num_rbgs_assigned = 0
+        self.rr_index = 0
 
     def add_ue(self, ue: UE) -> None:
         """
@@ -197,6 +198,9 @@ class Slice:
         for i in np.arange(num_rbs_allocated):
             rbs_ues[next(pool)] += 1
 
+        rbs_ues = np.roll(rbs_ues, self.rr_index)
+        self.rr_index += 1 if self.rr_index < (len(self.ues) - 1) else -self.rr_index
+
         # Allocating assigned RBs to UEs
         hist_ues = []
         for i, ue in enumerate(self.ues):
@@ -204,9 +208,6 @@ class Slice:
             hist_ues.append(ue.hist)
             if step_number == (max_step_number - 1):
                 ue.save_hist()
-
-        #  Rools UE array to enable round-robin allocation
-        self.ues = np.roll(self.ues, num_rbs_allocated)
 
         # Update slice history
         self.update_hist(hist_ues)
