@@ -3,6 +3,7 @@ from typing import Tuple
 
 import matplotlib.pyplot as plt
 import numpy as np
+from numpy.random import BitGenerator
 
 from buffer import Buffer
 from channel import Channel
@@ -28,7 +29,7 @@ class UE:
         frequency: int = 2,
         total_number_rbs: int = 17,
         plots: bool = False,
-        seed: int = -1,  # - 1 represents no fixed seed
+        rng: BitGenerator = np.random.default_rng(),
         windows_size: int = 100,
     ) -> None:
         self.bs_name = bs_name
@@ -59,11 +60,7 @@ class UE:
         ]
         self.hist = {hist_label: np.array([]) for hist_label in self.hist_labels}
         self.tmp_hist = {hist_label: np.array([]) for hist_label in self.hist_labels}
-        self.rng = (
-            np.random.default_rng(int(np.rint(seed * 10000)))
-            if seed != -1
-            else np.random.default_rng()
-        )
+        self.rng = rng
 
     def define_traffic_function(self):
         """
@@ -323,7 +320,6 @@ def main():
         total_number_rbs=17,
         traffic_throughput=10,
         plots=False,
-        seed=2021,
         windows_size=100,
     )
     for i in range(2000):

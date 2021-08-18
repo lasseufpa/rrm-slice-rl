@@ -5,6 +5,7 @@ import gym
 import matplotlib.pyplot as plt
 import numpy as np
 from gym import spaces
+from numpy.random import BitGenerator
 from tqdm import tqdm
 
 from slice import Slice
@@ -39,7 +40,7 @@ class Basestation(gym.Env):
         max_number_steps: int = 2000,
         max_number_trials: int = 50,
         windows_size: int = 100,
-        seed: int = -1,
+        rng: BitGenerator = np.random.default_rng(),
         plots: bool = False,
     ) -> None:
         self.bs_name = bs_name
@@ -59,13 +60,8 @@ class Basestation(gym.Env):
         self.traffic_throughputs = traffic_throughputs
         self.slice_requirements = slice_requirements
         self.windows_size = windows_size
-        self.seed = seed
         self.plots = plots
-        self.rng = (
-            np.random.default_rng(int(np.rint(seed * 10000)))
-            if seed != -1
-            else np.random.default_rng()
-        )
+        self.rng = rng
 
         self.ues, self.slices = self.create_scenario()
         self.action_space_options = self.create_combinations(
@@ -166,7 +162,7 @@ class Basestation(gym.Env):
                     traffic_type=self.traffic_types[i - 1],
                     traffic_throughput=self.traffic_throughputs[i - 1],
                     plots=True,
-                    seed=-1 if self.seed == -1 else self.rng.random(),
+                    rng=self.rng,
                     windows_size=self.windows_size,
                 )
                 for i in np.arange(1, self.number_ues + 1)
