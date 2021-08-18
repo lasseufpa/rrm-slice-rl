@@ -131,7 +131,7 @@ rng = np.random.default_rng(seed) if seed != -1 else np.random.default_rng()
 
 # Test
 # models_test = np.append(models, ["mt", "rr", "pf"])
-models_test = ["rr"]  # , "rr", "mt"]
+models_test = ["pf"]  # , "rr", "mt"]
 for model in models_test:
     agent = create_agent(model, "test")
     for traffic_behavior in traffics_list:
