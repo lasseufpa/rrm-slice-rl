@@ -40,6 +40,7 @@ class Basestation(gym.Env):
         max_number_steps: int = 2000,
         max_number_trials: int = 50,
         windows_size: int = 100,
+        obs_space_mode: str = "full",
         rng: BitGenerator = np.random.default_rng(),
         plots: bool = False,
     ) -> None:
@@ -60,6 +61,7 @@ class Basestation(gym.Env):
         self.traffic_throughputs = traffic_throughputs
         self.slice_requirements = slice_requirements
         self.windows_size = windows_size
+        self.obs_space_mode = obs_space_mode
         self.plots = plots
         self.rng = rng
 
@@ -68,16 +70,30 @@ class Basestation(gym.Env):
             self.total_number_rbs, self.slices.shape[0]
         )
         self.action_space = spaces.Discrete(self.action_space_options.shape[0])
-        self.observation_space = spaces.Box(
-            low=0,
-            high=np.inf,
-            shape=(
-                self.ues.shape[0] * 6  # UEs
-                + self.slices.shape[0] * 9  # Slices
-                + 8  # Slice requirements
-                + self.ues.shape[0],  # UEs spectral efficiency
-            ),
-        )
+
+        if self.obs_space_mode == "full":
+            self.observation_space = spaces.Box(
+                low=0,
+                high=np.inf,
+                shape=(
+                    self.ues.shape[0] * 6
+                    + self.slices.shape[0] * 9  # Slices
+                    + 8  # Slice requirements
+                    + self.ues.shape[0],  # UEs spectral efficiency
+                ),
+            )
+        elif self.obs_space_mode == "partial":
+            self.observation_space = spaces.Box(
+                low=0,
+                high=np.inf,
+                shape=(self.slices.shape[0] * 9 + 8,),  # Slices + Slice requirements
+            )
+        else:
+            raise Exception(
+                'BS observation space mode "{}" is not valid'.format(
+                    self.obs_space_mode
+                )
+            )
 
         self.hist_labels = [
             "actions",
@@ -213,12 +229,17 @@ class Basestation(gym.Env):
                     observation_ues = np.append(
                         observation_ues, (array[-1] if len(array) != 0 else 0)
                     )
-
-        return np.concatenate(
-            (slice_requirements, observation_slices, observation_ues), axis=None
+        obs_space = (
+            np.concatenate(
+                (slice_requirements, observation_slices, observation_ues), axis=None
+            )
+            if self.obs_space_mode == "full"
+            else np.concatenate((slice_requirements, observation_slices), axis=None)
         )
 
-    def calculate_reward(self):
+        return obs_space
+
+    def calculate_reward(self) -> float:
         """
         Calculates the environment reward for the action taken. It considers
         the slices requirements as basis to formulate how good was the action.
@@ -514,6 +535,7 @@ def main():
         traffic_types=traffic_types,
         traffic_throughputs=traffic_throughputs,
         slice_requirements=slice_requirements,
+        obs_space_mode="partial",
         plots=True,
     )
 
