@@ -2,21 +2,22 @@ import numpy as np
 from stable_baselines3 import A2C, DQN, PPO
 from stable_baselines3.common.env_checker import check_env
 from stable_baselines3.common.evaluation import evaluate_policy
+from tqdm import tqdm
 
 from baselines import BaselineAgent
 from basestation import Basestation
 
 train_param = {
     "steps_per_trial": 2000,
-    "total_trials": 1,
-    "runs_per_agent": 1,
+    "total_trials": 45,
+    "runs_per_agent": 10,
 }
 
 test_param = {
     "steps_per_trial": 2000,
     "total_trials": 50,
-    "initial_trial": 50,
-    "runs_per_agent": 1,
+    "initial_trial": 46,
+    "runs_per_agent": 10,
 }
 
 # Create environment
@@ -101,11 +102,11 @@ def create_agent(type: str, mode: str, obs_space_mode: str):
             )
     elif mode == "test":
         if type == "a2c":
-            return A2C.load("./agents/a2c_{}".format(obs_space_mode), env)
+            return A2C.load("./agents/a2c_{}".format(obs_space_mode), None, verbose=0)
         elif type == "ppo":
-            return PPO.load("./agents/ppo_{}".format(obs_space_mode), env)
+            return PPO.load("./agents/ppo_{}".format(obs_space_mode), None, verbose=0)
         elif type == "dqn":
-            return DQN.load("./agents/dqn_{}".format(obs_space_mode), env)
+            return DQN.load("./agents/dqn_{}".format(obs_space_mode), None, verbose=0)
         elif type == "mt":
             return BaselineAgent("mt")
         elif type == "pf":
@@ -121,13 +122,16 @@ windows_sizes = [1, 50, 100]
 seed = 10
 
 # Training
-for windows_size in windows_sizes:
-    for obs_space_mode in obs_space_modes:
-        for model in models:
+print("\n############### Training ###############")
+for windows_size in tqdm(windows_sizes, desc="Windows size", leave=False):
+    for obs_space_mode in tqdm(obs_space_modes, desc="Obs. Space mode", leave=False):
+        for model in tqdm(models, desc="Models", leave=False):
             rng = np.random.default_rng(seed) if seed != -1 else np.random.default_rng()
             agent = create_agent(model, "train", obs_space_mode)
-            for traffic_behavior in traffics_list:
-                for run_number in range(1, train_param["runs_per_agent"] + 1):
+            for traffic_behavior in tqdm(traffics_list, desc="Traffics", leave=False):
+                for run_number in tqdm(
+                    range(1, train_param["runs_per_agent"] + 1), desc="Run", leave=False
+                ):
                     env = Basestation(
                         bs_name="train/{}/ws_{}/{}/{}/run{}".format(
                             model,
@@ -157,14 +161,17 @@ for windows_size in windows_sizes:
             )
 
 # Test
+print("\n############### Testing ###############")
 models_test = np.append(models, ["mt", "rr", "pf"])
-for windows_size in windows_sizes:
-    for obs_space_mode in obs_space_modes:
-        for model in models_test:
+for windows_size in tqdm(windows_sizes, desc="Windows size", leave=False):
+    for obs_space_mode in tqdm(obs_space_modes, desc="Obs. Space mode", leave=False):
+        for model in tqdm(models_test, desc="Models", leave=False):
             rng = np.random.default_rng(seed) if seed != -1 else np.random.default_rng()
             agent = create_agent(model, "test", obs_space_mode)
-            for traffic_behavior in traffics_list:
-                for run_number in range(1, test_param["runs_per_agent"] + 1):
+            for traffic_behavior in tqdm(traffics_list, desc="Traffics", leave=False):
+                for run_number in tqdm(
+                    range(1, test_param["runs_per_agent"] + 1), desc="Run", leave=False
+                ):
                     env = Basestation(
                         bs_name="test/{}/ws_{}/{}/{}/run{}".format(
                             model,
@@ -185,10 +192,18 @@ for windows_size in windows_sizes:
                     )
                     agent.set_env(env)
                     obs = env.reset(test_param["initial_trial"])
-                    for _ in range(
-                        test_param["total_trials"] - test_param["initial_trial"] + 1
+                    for _ in tqdm(
+                        range(
+                            test_param["total_trials"] - test_param["initial_trial"] + 1
+                        ),
+                        leave=False,
+                        desc="Trials",
                     ):
-                        for _ in range(test_param["steps_per_trial"]):
+                        for _ in tqdm(
+                            range(test_param["steps_per_trial"]),
+                            leave=False,
+                            desc="Steps",
+                        ):
                             action, _states = agent.predict(obs)
                             obs, rewards, dones, info = env.step(action)
                         env.reset()
