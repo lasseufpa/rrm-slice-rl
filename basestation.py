@@ -43,6 +43,8 @@ class Basestation(gym.Env):
         obs_space_mode: str = "full",
         rng: BitGenerator = np.random.default_rng(),
         plots: bool = False,
+        slice_plots: bool = False,
+        ue_plots: bool = False,
     ) -> None:
         self.bs_name = bs_name
         self.max_packets_buffer = max_packets_buffer
@@ -63,6 +65,8 @@ class Basestation(gym.Env):
         self.windows_size = windows_size
         self.obs_space_mode = obs_space_mode
         self.plots = plots
+        self.slice_plots = slice_plots
+        self.ue_plots = ue_plots
         self.rng = rng
 
         self.ues, self.slices = self.create_scenario()
@@ -177,7 +181,7 @@ class Basestation(gym.Env):
                     trial_number=self.trial_number,
                     traffic_type=self.traffic_types[i - 1],
                     traffic_throughput=self.traffic_throughputs[i - 1],
-                    plots=True,
+                    plots=self.ue_plots,
                     rng=self.rng,
                     windows_size=self.windows_size,
                 )
@@ -195,7 +199,7 @@ class Basestation(gym.Env):
                     name=values[i - 1],
                     trial_number=self.trial_number,
                     ues=ues[indexes == (i - 1)],
-                    plots=True,
+                    plots=self.slice_plots,
                 )
                 for i in range(1, len(values) + 1)
             ]

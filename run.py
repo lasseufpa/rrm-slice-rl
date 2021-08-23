@@ -8,15 +8,15 @@ from basestation import Basestation
 
 train_param = {
     "steps_per_trial": 2000,
-    "total_trials": 2,
-    "runs_per_agent": 2,
+    "total_trials": 1,
+    "runs_per_agent": 1,
 }
 
 test_param = {
     "steps_per_trial": 2000,
     "total_trials": 50,
     "initial_trial": 50,
-    "runs_per_agent": 2,
+    "runs_per_agent": 1,
 }
 
 # Create environment
@@ -62,7 +62,7 @@ traffic_types = np.concatenate(
 
 
 # Instantiate the agent
-def create_agent(type: str, mode: str):
+def create_agent(type: str, mode: str, obs_space_mode: str):
     env = Basestation(
         bs_name="dummy",
         max_number_steps=train_param["steps_per_trial"],
@@ -70,6 +70,7 @@ def create_agent(type: str, mode: str):
         traffic_types=traffic_types,
         traffic_throughputs=traffics["light"],
         slice_requirements=slice_requirements["light"],
+        obs_space_mode=obs_space_mode,
         plots=True,
     )
     if mode == "train":
@@ -87,11 +88,11 @@ def create_agent(type: str, mode: str):
             )
     elif mode == "test":
         if type == "a2c":
-            return A2C.load("./agents/a2c", env)
+            return A2C.load("./agents/a2c_{}".format(obs_space_mode), env)
         elif type == "ppo":
-            return PPO.load("./agents/ppo", env)
+            return PPO.load("./agents/ppo_{}".format(obs_space_mode), env)
         elif type == "dqn":
-            return DQN.load("./agents/dqn", env)
+            return DQN.load("./agents/dqn_{}".format(obs_space_mode), env)
         elif type == "mt":
             return BaselineAgent("mt")
         elif type == "pf":
@@ -100,59 +101,68 @@ def create_agent(type: str, mode: str):
             return BaselineAgent("rr")
 
 
-models = ["a2c"]  # , "ppo", "dqn"]
+models = ["a2c", "ppo", "dqn"]
 traffics_list = traffics.keys()
+obs_space_modes = ["full", "partial"]
 seed = 10
 
 # Training
-# for model in models:
-#     agent = create_agent(model, "train")
-#     for traffic_behavior in traffics_list:
-#         for run_number in range(1, train_param["runs_per_agent"] + 1):
-#             env = Basestation(
-#                 bs_name="{}_train/{}/run{}".format(model, traffic_behavior, run_number),
-#                 max_number_steps=train_param["steps_per_trial"],
-#                 max_number_trials=train_param["total_trials"],
-#                 traffic_types=traffic_types,
-#                 traffic_throughputs=traffics[traffic_behavior],
-#                 slice_requirements=slice_requirements[traffic_behavior],
-#                 windows_size = 100,
-#                 seed=rng.random(),
-#                 plots=True,
-#             )
-#             agent.set_env(env)
-#             agent.learn(
-#                 total_timesteps=int(
-#                     train_param["total_trials"] * train_param["steps_per_trial"]
-#                 ),
-#             )
-#     agent.save("./agents/{}".format(model))
+for obs_space_mode in obs_space_modes:
+    for model in models:
+        rng = np.random.default_rng(seed) if seed != -1 else np.random.default_rng()
+        agent = create_agent(model, "train", obs_space_mode)
+        for traffic_behavior in traffics_list:
+            for run_number in range(1, train_param["runs_per_agent"] + 1):
+                env = Basestation(
+                    bs_name="{}_train/{}/{}/run{}".format(
+                        model, obs_space_mode, traffic_behavior, run_number
+                    ),
+                    max_number_steps=test_param["steps_per_trial"],
+                    max_number_trials=test_param["total_trials"],
+                    traffic_types=traffic_types,
+                    traffic_throughputs=traffics[traffic_behavior],
+                    slice_requirements=slice_requirements[traffic_behavior],
+                    windows_size=100,
+                    obs_space_mode=obs_space_mode,
+                    rng=rng,
+                    plots=True,
+                )
+                agent.set_env(env)
+                agent.learn(
+                    total_timesteps=int(
+                        train_param["total_trials"] * train_param["steps_per_trial"]
+                    ),
+                )
+        agent.save("./agents/{}_{}".format(model, obs_space_mode))
 
 # Test
-# models_test = np.append(models, ["mt", "rr", "pf"])
-models_test = ["rr"]  # , "rr", "mt"]
-for model in models_test:
-    rng = np.random.default_rng(seed) if seed != -1 else np.random.default_rng()
-    agent = create_agent(model, "test")
-    for traffic_behavior in traffics_list:
-        for run_number in range(1, test_param["runs_per_agent"] + 1):
-            env = Basestation(
-                bs_name="{}_test/{}/run{}".format(model, traffic_behavior, run_number),
-                max_number_steps=test_param["steps_per_trial"],
-                max_number_trials=test_param["total_trials"],
-                traffic_types=traffic_types,
-                traffic_throughputs=traffics[traffic_behavior],
-                slice_requirements=slice_requirements[traffic_behavior],
-                windows_size=100,
-                rng=rng,
-                plots=True,
-            )
-            agent.set_env(env)
-            obs = env.reset(test_param["initial_trial"])
-            for _ in range(
-                test_param["total_trials"] - test_param["initial_trial"] + 1
-            ):
-                for _ in range(test_param["steps_per_trial"]):
-                    action, _states = agent.predict(obs)
-                    obs, rewards, dones, info = env.step(action)
-                env.reset()
+models_test = np.append(models, ["mt", "rr", "pf"])
+for obs_space_mode in obs_space_modes:
+    for model in models_test:
+        rng = np.random.default_rng(seed) if seed != -1 else np.random.default_rng()
+        agent = create_agent(model, "test", obs_space_mode)
+        for traffic_behavior in traffics_list:
+            for run_number in range(1, test_param["runs_per_agent"] + 1):
+                env = Basestation(
+                    bs_name="{}_test/{}/{}/run{}".format(
+                        model, obs_space_mode, traffic_behavior, run_number
+                    ),
+                    max_number_steps=test_param["steps_per_trial"],
+                    max_number_trials=test_param["total_trials"],
+                    traffic_types=traffic_types,
+                    traffic_throughputs=traffics[traffic_behavior],
+                    slice_requirements=slice_requirements[traffic_behavior],
+                    windows_size=100,
+                    obs_space_mode=obs_space_mode,
+                    rng=rng,
+                    plots=True,
+                )
+                agent.set_env(env)
+                obs = env.reset(test_param["initial_trial"])
+                for _ in range(
+                    test_param["total_trials"] - test_param["initial_trial"] + 1
+                ):
+                    for _ in range(test_param["steps_per_trial"]):
+                        action, _states = agent.predict(obs)
+                        obs, rewards, dones, info = env.step(action)
+                    env.reset()
