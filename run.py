@@ -89,15 +89,15 @@ def create_agent(type: str, mode: str, obs_space_mode: str):
     if mode == "train":
         if type == "a2c":
             return A2C(
-                "MlpPolicy", env, verbose=1, tensorboard_log="./tensorboard-logs/"
+                "MlpPolicy", env, verbose=0, tensorboard_log="./tensorboard-logs/"
             )
         elif type == "ppo":
             return PPO(
-                "MlpPolicy", env, verbose=1, tensorboard_log="./tensorboard-logs/"
+                "MlpPolicy", env, verbose=0, tensorboard_log="./tensorboard-logs/"
             )
         elif type == "dqn":
             return DQN(
-                "MlpPolicy", env, verbose=1, tensorboard_log="./tensorboard-logs/"
+                "MlpPolicy", env, verbose=0, tensorboard_log="./tensorboard-logs/"
             )
     elif mode == "test":
         if type == "a2c":
