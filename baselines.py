@@ -15,6 +15,9 @@ class BaselineAgent:
         max_packets_buffer: int = 1024,
         total_rbs: int = 17,
         slices_number: int = 3,
+        bandwidth: float = 100000000,
+        total_number_rbs: int = 17,
+        packet_size: int = 8192 * 8,
     ) -> None:
         if type == "mt":
             self.predict = self.max_throughput
@@ -24,22 +27,27 @@ class BaselineAgent:
             self.predict = self.proportional_fair
         self.max_packets_buffer = max_packets_buffer
         self.total_rbs = total_rbs
+        self.bandwidth = bandwidth
+        self.total_number_rbs = total_number_rbs
+        self.packet_size = packet_size
         self.action_space = self.create_combinations(total_rbs, slices_number)
         self.round_robin_alloc = [6, 6, 5]
-        self.tmp_throughput_sent = [1, 1, 1]
 
     def max_throughput(self, obs: np.array) -> int:
-        throughputs_capacity = obs[[10, 18, 26]]
-        buffer_pkt_occupancies = obs[[11, 18, 25]] * self.max_packets_buffer
-        max_throughput_avail = np.minimum(throughputs_capacity, buffer_pkt_occupancies)
-        perc_rbs_allocation = (
-            (max_throughput_avail / np.sum(max_throughput_avail)) * self.total_rbs
-            if np.sum(max_throughput_avail) != 0
+        throughputs_capacity = (
+            obs[[10, 18, 26]] * self.bandwidth * (1 / self.total_number_rbs)
+        ) / self.packet_size
+        buffer_pkt_occupancies = obs[[11, 20, 29]] * self.max_packets_buffer
+        max_pkt_throughput_avail = np.minimum(
+            throughputs_capacity, buffer_pkt_occupancies
+        )
+        rbs_allocation = (
+            (max_pkt_throughput_avail / np.sum(max_pkt_throughput_avail))
+            * self.total_rbs
+            if np.sum(max_pkt_throughput_avail) != 0
             else [6, 6, 5]
         )
-        action = np.argmin(
-            np.sum(np.abs(self.action_space - perc_rbs_allocation), axis=1)
-        )
+        action = np.argmin(np.sum(np.abs(self.action_space - rbs_allocation), axis=1))
         return action, []
 
     def round_robin(self, obs: np.array) -> int:
@@ -50,21 +58,22 @@ class BaselineAgent:
         return action, []
 
     def proportional_fair(self, obs: np.array) -> int:
-        throughputs_capacity = obs[[10, 18, 26]]
-        buffer_pkt_occupancies = obs[[11, 18, 25]] * self.max_packets_buffer
-        max_throughput_avail = np.minimum(throughputs_capacity, buffer_pkt_occupancies)
-        prop_fair_calc = (
-            (
-                self.total_rbs
-                * (max_throughput_avail / self.tmp_throughput_sent)
-                / np.sum(max_throughput_avail / self.tmp_throughput_sent)
-            )
-            if np.sum(max_throughput_avail) != 0
+        throughputs_capacity = (
+            obs[[10, 18, 26]] * self.bandwidth * (1 / self.total_number_rbs)
+        ) / self.packet_size
+        buffer_pkt_occupancies = obs[[11, 20, 29]] * self.max_packets_buffer
+        max_pkt_throughput_avail = np.minimum(
+            throughputs_capacity, buffer_pkt_occupancies
+        )
+        snt_pkt_throughput = obs[[9, 18, 27]]
+        snt_pkt_throughput[snt_pkt_throughput == 0] = 0.00001
+        fairness_calc = max_pkt_throughput_avail / snt_pkt_throughput
+        rbs_allocation = (
+            (self.total_rbs * fairness_calc / np.sum(fairness_calc))
+            if np.sum(fairness_calc) != 0
             else [6, 6, 5]
         )
-        action = np.argmin(np.sum(np.abs(self.action_space - prop_fair_calc), axis=1))
-        self.tmp_throughput_sent = max_throughput_avail
-        self.tmp_throughput_sent[self.tmp_throughput_sent == 0] = 1
+        action = np.argmin(np.sum(np.abs(self.action_space - rbs_allocation), axis=1))
         return action, []
 
     def create_combinations(self, total_rbs: int, number_slices: int):

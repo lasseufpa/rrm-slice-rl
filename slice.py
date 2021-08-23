@@ -37,6 +37,7 @@ class Slice:
             "buffer_occ",
             "avg_lat",
             "pkt_loss",
+            "se",
             "long_term_pkt_thr",
             "fifth_perc_pkt_thr",
         ]
@@ -68,6 +69,7 @@ class Slice:
             "buffer_occ",
             "avg_lat",
             "pkt_loss",
+            "se",
         ]
         hist_vars = np.array([])
         for label in hist_ue_labels:
@@ -129,6 +131,7 @@ class Slice:
                 data.f.buffer_occ,
                 data.f.avg_lat,
                 data.f.pkt_loss,
+                data.f.se,
                 data.f.long_term_pkt_thr,
                 data.f.fifth_perc_pkt_thr,
             ]
@@ -231,7 +234,6 @@ def main():
             total_number_rbs=17,
             traffic_throughput=10,
             plots=False,
-            seed=2021,
             windows_size=100,
         )
         for i in np.arange(1, number_ues + 1)
@@ -242,7 +244,7 @@ def main():
         name="slice_name",
         trial_number=1,
         ues=ues,
-        plots=False,
+        plots=True,
     )
     for i in range(max_number_steps):
         slice.step(i, max_number_steps, const_rbs)

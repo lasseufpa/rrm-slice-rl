@@ -130,7 +130,7 @@ seed = 10
 
 # Test
 # models_test = np.append(models, ["mt", "rr", "pf"])
-models_test = ["rr", "mt"]  # , "rr", "mt"]
+models_test = ["rr"]  # , "rr", "mt"]
 for model in models_test:
     rng = np.random.default_rng(seed) if seed != -1 else np.random.default_rng()
     agent = create_agent(model, "test")

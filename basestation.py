@@ -73,7 +73,7 @@ class Basestation(gym.Env):
             high=np.inf,
             shape=(
                 self.ues.shape[0] * 6  # UEs
-                + self.slices.shape[0] * 8  # Slices
+                + self.slices.shape[0] * 9  # Slices
                 + 8  # Slice requirements
                 + self.ues.shape[0],  # UEs spectral efficiency
             ),
