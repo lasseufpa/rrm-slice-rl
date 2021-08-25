@@ -59,7 +59,9 @@ class UE:
             "se",
         ]
         self.hist = {hist_label: np.array([]) for hist_label in self.hist_labels}
-        self.tmp_hist = {hist_label: np.array([]) for hist_label in self.hist_labels}
+        self.no_windows_hist = {
+            hist_label: np.array([]) for hist_label in self.hist_labels
+        }
         self.rng = rng
 
     def define_traffic_function(self):
@@ -154,8 +156,10 @@ class UE:
             pkt_loss,
             self.se[step_number],
         ]
-        for i, var in enumerate(self.tmp_hist.items()):
-            self.tmp_hist[var[0]] = np.append(self.tmp_hist[var[0]], hist_vars[i])
+        for i, var in enumerate(self.no_windows_hist.items()):
+            self.no_windows_hist[var[0]] = np.append(
+                self.no_windows_hist[var[0]], hist_vars[i]
+            )
 
         slice_idx2 = None
         if step_number < self.windows_size:
@@ -166,39 +170,51 @@ class UE:
                 slice_idx2 = 0
 
         pkt_loss_den = np.sum(
-            np.append(self.tmp_hist["pkt_rcv"][slice_idx1:slice_idx2], packets_received)
+            np.append(
+                self.no_windows_hist["pkt_rcv"][slice_idx1:slice_idx2], packets_received
+            )
         )
         hist_vars = [
             np.mean(
                 np.append(
-                    self.tmp_hist["pkt_rcv"][slice_idx1:slice_idx2], packets_received
-                )
-            ),
-            np.mean(
-                np.append(self.tmp_hist["pkt_snt"][slice_idx1:slice_idx2], packets_sent)
-            ),
-            np.mean(
-                np.append(
-                    self.tmp_hist["pkt_thr"][slice_idx1:slice_idx2], packets_throughput
+                    self.no_windows_hist["pkt_rcv"][slice_idx1:slice_idx2],
+                    packets_received,
                 )
             ),
             np.mean(
                 np.append(
-                    self.tmp_hist["buffer_occ"][slice_idx1:slice_idx2], buffer_occupancy
+                    self.no_windows_hist["pkt_snt"][slice_idx1:slice_idx2], packets_sent
                 )
             ),
             np.mean(
-                np.append(self.tmp_hist["avg_lat"][slice_idx1:slice_idx2], avg_latency)
+                np.append(
+                    self.no_windows_hist["pkt_thr"][slice_idx1:slice_idx2],
+                    packets_throughput,
+                )
+            ),
+            np.mean(
+                np.append(
+                    self.no_windows_hist["buffer_occ"][slice_idx1:slice_idx2],
+                    buffer_occupancy,
+                )
+            ),
+            np.mean(
+                np.append(
+                    self.no_windows_hist["avg_lat"][slice_idx1:slice_idx2], avg_latency
+                )
             ),
             np.sum(
-                np.append(self.tmp_hist["pkt_loss"][slice_idx1:slice_idx2], pkt_loss)
+                np.append(
+                    self.no_windows_hist["pkt_loss"][slice_idx1:slice_idx2], pkt_loss
+                )
             )
             / pkt_loss_den
             if pkt_loss_den != 0
             else 0,
             np.mean(
                 np.append(
-                    self.tmp_hist["se"][slice_idx1:slice_idx2], self.se[step_number]
+                    self.no_windows_hist["se"][slice_idx1:slice_idx2],
+                    self.se[step_number],
                 )
             ),
         ]
@@ -215,7 +231,7 @@ class UE:
         except OSError:
             pass
 
-        np.savez_compressed((path + "ue{}").format(self.id), **self.hist)
+        np.savez_compressed((path + "ue{}").format(self.id), **self.no_windows_hist)
         if self.plots:
             UE.plot_metrics(self.bs_name, self.trial_number, self.id)
 

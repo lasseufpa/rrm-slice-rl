@@ -42,6 +42,9 @@ class Slice:
             "fifth_perc_pkt_thr",
         ]
         self.hist = {hist_label: np.array([]) for hist_label in self.hist_labels}
+        self.no_windows_hist = {
+            hist_label: np.array([]) for hist_label in self.hist_labels
+        }
         self.ues_order = []
         self.num_rbgs_assigned = 0
         self.rr_index = 0
@@ -58,7 +61,7 @@ class Slice:
         """
         self.num_rbgs_assigned = num_rbs
 
-    def update_hist(self, hist_ues: list) -> None:
+    def update_hist(self, hist_ues: list, hist_nowindows_ues: list) -> None:
         """
         Update slice variables history to enable the record to external files.
         """
@@ -72,9 +75,19 @@ class Slice:
             "se",
         ]
         hist_vars = np.array([])
+        hist_nowindows_vars = np.array([])
         for label in hist_ue_labels:
             hist_vars = np.append(
                 hist_vars, np.mean([hist_ue[label][-1] for hist_ue in hist_ues])
+            )
+            hist_nowindows_vars = np.append(
+                hist_nowindows_vars,
+                np.mean(
+                    [
+                        hist_nowindows_ue[label][-1]
+                        for hist_nowindows_ue in hist_nowindows_ues
+                    ]
+                ),
             )
 
         for i, var in enumerate(self.hist.items()):
@@ -83,13 +96,25 @@ class Slice:
                     self.hist[var[0]],
                     np.sum(self.hist["pkt_thr"]) / self.hist["pkt_thr"].shape,
                 )
+                self.no_windows_hist[var[0]] = np.append(
+                    self.no_windows_hist[var[0]],
+                    np.sum(self.no_windows_hist["pkt_thr"])
+                    / self.no_windows_hist["pkt_thr"].shape,
+                )
             elif var[0] == "fifth_perc_pkt_thr":
                 self.hist[var[0]] = np.append(
                     self.hist[var[0]],
                     np.percentile(self.hist["pkt_thr"], 5),
                 )
+                self.no_windows_hist[var[0]] = np.append(
+                    self.no_windows_hist[var[0]],
+                    np.percentile(self.no_windows_hist["pkt_thr"], 5),
+                )
             else:
                 self.hist[var[0]] = np.append(self.hist[var[0]], hist_vars[i])
+                self.no_windows_hist[var[0]] = np.append(
+                    self.no_windows_hist[var[0]], hist_nowindows_vars[i]
+                )
 
     def get_last_hist(self) -> dict:
         """
@@ -110,7 +135,7 @@ class Slice:
         except OSError:
             pass
 
-        np.savez_compressed((path + "slice{}").format(self.id), **self.hist)
+        np.savez_compressed((path + "slice{}").format(self.id), **self.no_windows_hist)
         if self.plots:
             Slice.plot_metrics(self.bs_name, self.trial_number, self.id)
 
@@ -206,14 +231,16 @@ class Slice:
 
         # Allocating assigned RBs to UEs
         hist_ues = []
+        hist_nowindows_ues = []
         for i, ue in enumerate(self.ues):
             ue.step(step_number, rbs_ues[i])
             hist_ues.append(ue.hist)
+            hist_nowindows_ues.append(ue.no_windows_hist)
             if step_number == (max_step_number - 1):
                 ue.save_hist()
 
         # Update slice history
-        self.update_hist(hist_ues)
+        self.update_hist(hist_ues, hist_nowindows_ues)
 
 
 def main():
