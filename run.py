@@ -76,7 +76,7 @@ traffic_types = np.concatenate(
 
 
 # Instantiate the agent
-def create_agent(type: str, mode: str, obs_space_mode: str):
+def create_agent(type: str, mode: str, obs_space_mode: str, windows_size: int):
     env = Basestation(
         bs_name="dummy",
         max_number_steps=train_param["steps_per_trial"],
@@ -102,11 +102,23 @@ def create_agent(type: str, mode: str, obs_space_mode: str):
             )
     elif mode == "test":
         if type == "a2c":
-            return A2C.load("./agents/a2c_{}".format(obs_space_mode), None, verbose=0)
+            return A2C.load(
+                "./agents/a2c_{}_ws{}".format(obs_space_mode, windows_size),
+                None,
+                verbose=0,
+            )
         elif type == "ppo":
-            return PPO.load("./agents/ppo_{}".format(obs_space_mode), None, verbose=0)
+            return PPO.load(
+                "./agents/ppo_{}_ws{}".format(obs_space_mode, windows_size),
+                None,
+                verbose=0,
+            )
         elif type == "dqn":
-            return DQN.load("./agents/dqn_{}".format(obs_space_mode), None, verbose=0)
+            return DQN.load(
+                "./agents/dqn_{}_ws{}".format(obs_space_mode, windows_size),
+                None,
+                verbose=0,
+            )
         elif type == "mt":
             return BaselineAgent("mt")
         elif type == "pf":
@@ -127,7 +139,7 @@ for windows_size in tqdm(windows_sizes, desc="Windows size", leave=False):
     for obs_space_mode in tqdm(obs_space_modes, desc="Obs. Space mode", leave=False):
         for model in tqdm(models, desc="Models", leave=False):
             rng = np.random.default_rng(seed) if seed != -1 else np.random.default_rng()
-            agent = create_agent(model, "train", obs_space_mode)
+            agent = create_agent(model, "train", obs_space_mode, windows_size)
             for traffic_behavior in tqdm(traffics_list, desc="Traffics", leave=False):
                 for run_number in tqdm(
                     range(1, train_param["runs_per_agent"] + 1), desc="Run", leave=False
@@ -167,7 +179,7 @@ for windows_size in tqdm(windows_sizes, desc="Windows size", leave=False):
     for obs_space_mode in tqdm(obs_space_modes, desc="Obs. Space mode", leave=False):
         for model in tqdm(models_test, desc="Models", leave=False):
             rng = np.random.default_rng(seed) if seed != -1 else np.random.default_rng()
-            agent = create_agent(model, "test", obs_space_mode)
+            agent = create_agent(model, "test", obs_space_mode, windows_size)
             for traffic_behavior in tqdm(traffics_list, desc="Traffics", leave=False):
                 for run_number in tqdm(
                     range(1, test_param["runs_per_agent"] + 1), desc="Run", leave=False
