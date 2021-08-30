@@ -92,7 +92,7 @@ def plot_agents_comparison(
                     color="blue",
                     markevery=50,
                     zorder=3,
-                    label="{} req.".format(slices_names_markers[slice][0]),
+                    label="{} Req.".format(slices_names_markers[slice][0]),
                 )
         fig.tight_layout()
         plt.legend(fontsize=12)
@@ -192,7 +192,7 @@ def plot_ws_comparison(
                     color="blue",
                     markevery=50,
                     zorder=3,
-                    label="{} req.".format(slices_names_markers[slice][0]),
+                    label="{} Req.".format(slices_names_markers[slice][0]),
                 )
         fig.tight_layout()
         plt.legend(fontsize=12)
@@ -200,6 +200,105 @@ def plot_ws_comparison(
         fig.savefig(
             "./results/windows_comp_{}_{}_{}_{}.pdf".format(
                 attribute, traffic, obs_space, agent
+            ),
+            # bbox_inches="tight",
+            pad_inches=0,
+            format="pdf",
+            dpi=1000,
+        )
+        # plt.show()
+        plt.close()
+
+
+def plot_obs_comparison(
+    trial_number: int,
+    agent: str,
+    slices_req: dict,
+    windows_size: int,
+    traffic: str,
+    obs_spaces: list,
+    runs: int,
+    steps_number: int = 2000,
+) -> None:
+    x_label = "Time (ms)"
+    slices = {
+        "be": 1,
+        "embb": 2,
+        "urllc": 3,
+    }
+    slices_names_markers = {
+        "be": ("BE", "*"),
+        "embb": ("eMBB", "p"),
+        "urllc": ("URLLC", "d"),
+    }
+    obs_names_colors = {
+        "full": ("Full", "#003f5c"),
+        "partial": ("Partial", "#444e86"),
+    }
+    data_index = {
+        "throughput": 2,
+        "latency": 4,
+        "pkt_loss": 5,
+        "long_term_pkt_thr": 7,
+        "fifth_perc_pkt_thr": 8,
+    }
+
+    for attribute in data_index.keys():
+        w, h = plt.figaspect(0.6)
+        fig = plt.figure(figsize=(w, h))
+        plt.xlabel(x_label, fontsize=14)
+        plt.ylabel("Generic", fontsize=14)
+        plt.grid()
+        for slice in slices.keys():
+            for obs_space in obs_spaces:
+                if attribute in slice_requirements[traffic][slice].keys():
+                    hist = np.zeros((runs, steps_number))
+                    for run_number in range(runs):
+                        hist[run_number, :] = Slice.read_hist(
+                            "test/{}/ws_{}/{}/{}/run{}".format(
+                                agent,
+                                windows_size,
+                                obs_space,
+                                traffic,
+                                run_number + 1,
+                            ),
+                            trial_number,
+                            slices[slice],
+                        )[data_index[attribute]]
+                    hist = np.mean(hist, axis=0)
+                    hist = (
+                        Basestation.packets_to_mbps(8192 * 8, hist)
+                        if data_index[attribute] in [2, 7, 8]
+                        else hist
+                    )
+                    plt.plot(
+                        range(0, len(hist)),
+                        hist,
+                        label="{}, {} Obs. Space".format(
+                            slices_names_markers[slice][0],
+                            obs_names_colors[obs_space][0],
+                        ),
+                        marker=slices_names_markers[slice][1],
+                        color=obs_names_colors[obs_space][1],
+                        markevery=50,
+                    )
+            if attribute in slice_requirements[traffic][slice].keys():
+                plt.plot(
+                    range(steps_number),
+                    slices_req[traffic][slice][attribute] * np.ones(steps_number),
+                    linestyle="--",
+                    marker=slices_names_markers[slice][1],
+                    color="blue",
+                    markevery=50,
+                    zorder=3,
+                    label="{} Req.".format(slices_names_markers[slice][0]),
+                )
+        fig.tight_layout()
+        plt.legend(fontsize=12)
+        os.makedirs("./results", exist_ok=True)
+        fig.savefig(
+            "./results/obs_comp_{}_{}_ws{}_{}.pdf".format(
+                attribute, traffic, windows_size, agent
             ),
             # bbox_inches="tight",
             pad_inches=0,
@@ -243,12 +342,22 @@ slice_requirements = {
 #     10,
 # )
 
-plot_ws_comparison(
+# plot_ws_comparison(
+#     trial_number,
+#     "mt",
+#     slice_requirements,
+#     [1, 50, 100],
+#     traffics,
+#     observations_spaces,
+#     10,
+# )
+
+plot_obs_comparison(
     trial_number,
-    "rr",
+    "ppo",
     slice_requirements,
-    [1, 50, 100],
+    1,
     traffics,
-    observations_spaces,
+    ["full", "partial"],
     10,
 )
