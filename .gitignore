@@ -10,6 +10,9 @@ hist/
 # Quadriga Channels
 channels/
 
+# Results
+results/
+
 # Vs code files
 .vscode
 
