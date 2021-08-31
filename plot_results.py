@@ -38,18 +38,18 @@ def plot_agents_comparison(
         "mt": ("MT", "#ffa600"),
     }
     data_index = {
-        "throughput": 2,
-        "latency": 4,
-        "pkt_loss": 5,
-        "long_term_pkt_thr": 7,
-        "fifth_perc_pkt_thr": 8,
+        "throughput": (2, "Throughput (Mbps)"),
+        "latency": (4, "Latency (ms)"),
+        "pkt_loss": (5, "Packet loss rate"),
+        "long_term_pkt_thr": (7, "Throughput (Mbps)"),
+        "fifth_perc_pkt_thr": (8, "Throughput (Mbps)"),
     }
 
     for attribute in data_index.keys():
         w, h = plt.figaspect(0.6)
         fig = plt.figure(figsize=(w, h))
         plt.xlabel(x_label, fontsize=14)
-        plt.ylabel("Generic", fontsize=14)
+        plt.ylabel(data_index[attribute][1], fontsize=14)
         plt.grid()
         for slice in slices.keys():
             for agent in agents:
@@ -66,11 +66,11 @@ def plot_agents_comparison(
                             ),
                             trial_number,
                             slices[slice],
-                        )[data_index[attribute]]
+                        )[data_index[attribute][0]]
                     hist = np.mean(hist, axis=0)
                     hist = (
                         Basestation.packets_to_mbps(8192 * 8, hist)
-                        if data_index[attribute] in [2, 7, 8]
+                        if data_index[attribute][0] in [2, 7, 8]
                         else hist
                     )
                     plt.plot(
@@ -138,18 +138,18 @@ def plot_ws_comparison(
         100: "#955196",
     }
     data_index = {
-        "throughput": 2,
-        "latency": 4,
-        "pkt_loss": 5,
-        "long_term_pkt_thr": 7,
-        "fifth_perc_pkt_thr": 8,
+        "throughput": (2, "Throughput (Mbps)"),
+        "latency": (4, "Latency (ms)"),
+        "pkt_loss": (5, "Packet loss rate"),
+        "long_term_pkt_thr": (7, "Throughput (Mbps)"),
+        "fifth_perc_pkt_thr": (8, "Throughput (Mbps)"),
     }
 
     for attribute in data_index.keys():
         w, h = plt.figaspect(0.6)
         fig = plt.figure(figsize=(w, h))
         plt.xlabel(x_label, fontsize=14)
-        plt.ylabel("Generic", fontsize=14)
+        plt.ylabel(data_index[attribute][1], fontsize=14)
         plt.grid()
         for slice in slices.keys():
             for windows_size in windows_sizes:
@@ -166,11 +166,11 @@ def plot_ws_comparison(
                             ),
                             trial_number,
                             slices[slice],
-                        )[data_index[attribute]]
+                        )[data_index[attribute][0]]
                     hist = np.mean(hist, axis=0)
                     hist = (
                         Basestation.packets_to_mbps(8192 * 8, hist)
-                        if data_index[attribute] in [2, 7, 8]
+                        if data_index[attribute][0] in [2, 7, 8]
                         else hist
                     )
                     plt.plot(
@@ -237,18 +237,18 @@ def plot_obs_comparison(
         "partial": ("Partial", "#444e86"),
     }
     data_index = {
-        "throughput": 2,
-        "latency": 4,
-        "pkt_loss": 5,
-        "long_term_pkt_thr": 7,
-        "fifth_perc_pkt_thr": 8,
+        "throughput": (2, "Throughput (Mbps)"),
+        "latency": (4, "Latency (ms)"),
+        "pkt_loss": (5, "Packet loss rate"),
+        "long_term_pkt_thr": (7, "Throughput (Mbps)"),
+        "fifth_perc_pkt_thr": (8, "Throughput (Mbps)"),
     }
 
     for attribute in data_index.keys():
         w, h = plt.figaspect(0.6)
         fig = plt.figure(figsize=(w, h))
         plt.xlabel(x_label, fontsize=14)
-        plt.ylabel("Generic", fontsize=14)
+        plt.ylabel(data_index[attribute][1], fontsize=14)
         plt.grid()
         for slice in slices.keys():
             for obs_space in obs_spaces:
@@ -265,11 +265,11 @@ def plot_obs_comparison(
                             ),
                             trial_number,
                             slices[slice],
-                        )[data_index[attribute]]
+                        )[data_index[attribute][0]]
                     hist = np.mean(hist, axis=0)
                     hist = (
                         Basestation.packets_to_mbps(8192 * 8, hist)
-                        if data_index[attribute] in [2, 7, 8]
+                        if data_index[attribute][0] in [2, 7, 8]
                         else hist
                     )
                     plt.plot(
@@ -342,7 +342,7 @@ def plot_reward_ws_comparison(
         w, h = plt.figaspect(0.6)
         fig = plt.figure(figsize=(w, h))
         plt.xlabel(x_label, fontsize=14)
-        plt.ylabel("Generic", fontsize=14)
+        plt.ylabel("Reward", fontsize=14)
         plt.grid()
         for windows_size in windows_sizes:
             for agent in agents:
@@ -414,7 +414,7 @@ def plot_reward_obs_comparison(
         w, h = plt.figaspect(0.6)
         fig = plt.figure(figsize=(w, h))
         plt.xlabel(x_label, fontsize=14)
-        plt.ylabel("Generic", fontsize=14)
+        plt.ylabel("Reward", fontsize=14)
         plt.grid()
         for obs_space in obs_spaces:
             for agent in agents:
@@ -457,7 +457,7 @@ def plot_reward_obs_comparison(
 
 
 trial_number = 1
-agents = ["rr", "mt"]
+agents = ["ppo", "rr", "mt"]
 windows_sizes = 1
 observations_spaces = "full"
 traffics = "light"
@@ -491,7 +491,7 @@ slice_requirements = {
 
 # plot_ws_comparison(
 #     trial_number,
-#     "mt",
+#     "ppo",
 #     slice_requirements,
 #     [1, 50, 100],
 #     traffics,
@@ -499,15 +499,15 @@ slice_requirements = {
 #     10,
 # )
 
-# plot_obs_comparison(
-#     trial_number,
-#     "ppo",
-#     slice_requirements,
-#     1,
-#     traffics,
-#     ["full", "partial"],
-#     10,
-# )
+plot_obs_comparison(
+    trial_number,
+    "ppo",
+    slice_requirements,
+    1,
+    traffics,
+    ["full", "partial"],
+    10,
+)
 
 # plot_reward_ws_comparison(trial_number, agents, [1, 100], "light", "full", 10)
-plot_reward_obs_comparison(trial_number, agents, 1, "light", ["full", "partial"], 10)
+# plot_reward_obs_comparison(trial_number, agents, 1, "light", ["full", "partial"], 10)

@@ -157,8 +157,15 @@ class UE:
             self.se[step_number],
         ]
         for i, var in enumerate(self.no_windows_hist.items()):
-            self.no_windows_hist[var[0]] = np.append(
-                self.no_windows_hist[var[0]], hist_vars[i]
+            self.no_windows_hist[var[0]] = (
+                np.append(self.no_windows_hist[var[0]], hist_vars[i])
+                if var[0] != "pkt_loss"
+                else np.append(
+                    self.no_windows_hist[var[0]],
+                    hist_vars[i] / (hist_vars[0] + np.sum(self.buffer.buffer)),
+                )
+                if (hist_vars[0] + np.sum(self.buffer.buffer)) != 0
+                else np.append(self.no_windows_hist[var[0]], 0)
             )
 
         slice_idx2 = None
@@ -169,11 +176,6 @@ class UE:
             if not slice_idx1:
                 slice_idx2 = 0
 
-        pkt_loss_den = np.sum(
-            np.append(
-                self.no_windows_hist["pkt_rcv"][slice_idx1:slice_idx2], packets_received
-            )
-        )
         hist_vars = [
             np.mean(
                 np.append(
@@ -203,14 +205,11 @@ class UE:
                     self.no_windows_hist["avg_lat"][slice_idx1:slice_idx2], avg_latency
                 )
             ),
-            np.sum(
+            np.mean(
                 np.append(
                     self.no_windows_hist["pkt_loss"][slice_idx1:slice_idx2], pkt_loss
                 )
-            )
-            / pkt_loss_den
-            if pkt_loss_den != 0
-            else 0,
+            ),
             np.mean(
                 np.append(
                     self.no_windows_hist["se"][slice_idx1:slice_idx2],
