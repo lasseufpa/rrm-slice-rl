@@ -261,7 +261,7 @@ def main():
             total_number_rbs=17,
             traffic_throughput=10,
             plots=False,
-            windows_size=100,
+            windows_size_obs=100,
         )
         for i in np.arange(1, number_ues + 1)
     ]

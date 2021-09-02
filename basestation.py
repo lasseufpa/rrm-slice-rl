@@ -39,7 +39,7 @@ class Basestation(gym.Env):
         total_number_rbs: int = 17,
         max_number_steps: int = 2000,
         max_number_trials: int = 50,
-        windows_size: int = 100,
+        windows_size_obs: int = 100,
         obs_space_mode: str = "full",
         rng: BitGenerator = np.random.default_rng(),
         plots: bool = False,
@@ -62,7 +62,7 @@ class Basestation(gym.Env):
         self.reward = 0
         self.traffic_throughputs = traffic_throughputs
         self.slice_requirements = slice_requirements
-        self.windows_size = windows_size
+        self.windows_size_obs = windows_size_obs
         self.obs_space_mode = obs_space_mode
         self.plots = plots
         self.slice_plots = slice_plots
@@ -183,7 +183,7 @@ class Basestation(gym.Env):
                     traffic_throughput=self.traffic_throughputs[i - 1],
                     plots=self.ue_plots,
                     rng=self.rng,
-                    windows_size=self.windows_size,
+                    windows_size_obs=self.windows_size_obs,
                 )
                 for i in np.arange(1, self.number_ues + 1)
             ]

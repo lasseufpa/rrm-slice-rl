@@ -30,7 +30,7 @@ class UE:
         total_number_rbs: int = 17,
         plots: bool = False,
         rng: BitGenerator = np.random.default_rng(),
-        windows_size: int = 100,
+        windows_size_obs: int = 100,
     ) -> None:
         self.bs_name = bs_name
         self.id = id
@@ -46,7 +46,7 @@ class UE:
         )
         self.buffer = Buffer(max_packets_buffer, buffer_max_lat)
         self.traffic_throughput = traffic_throughput
-        self.windows_size = windows_size
+        self.windows_size_obs = windows_size_obs
         self.plots = plots
         self.get_arrived_packets = self.define_traffic_function()
         self.hist_labels = [
@@ -169,10 +169,10 @@ class UE:
             )
 
         slice_idx2 = None
-        if step_number < self.windows_size:
+        if step_number < self.windows_size_obs:
             slice_idx1 = 0
-        elif step_number >= self.windows_size:
-            slice_idx1 = -(self.windows_size - 1)
+        elif step_number >= self.windows_size_obs:
+            slice_idx1 = -(self.windows_size_obs - 1)
             if not slice_idx1:
                 slice_idx2 = 0
 
@@ -335,7 +335,7 @@ def main():
         total_number_rbs=17,
         traffic_throughput=10,
         plots=False,
-        windows_size=100,
+        windows_size_obs=100,
     )
     for i in range(2000):
         ue.step(i, 10)

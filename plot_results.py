@@ -12,7 +12,7 @@ def plot_agents_comparison(
     trial_number: int,
     agents: list,
     slices_req: dict,
-    windows_size: int,
+    windows_size_obs: int,
     traffic: str,
     obs_space: str,
     runs: int,
@@ -59,7 +59,7 @@ def plot_agents_comparison(
                         hist[run_number, :] = Slice.read_hist(
                             "test/{}/ws_{}/{}/{}/run{}".format(
                                 agent,
-                                windows_size,
+                                windows_size_obs,
                                 obs_space,
                                 traffic,
                                 run_number + 1,
@@ -100,7 +100,7 @@ def plot_agents_comparison(
         os.makedirs("./results", exist_ok=True)
         fig.savefig(
             "./results/agent_comp_{}_{}_{}_ws{}.pdf".format(
-                attribute, traffic, obs_space, windows_size
+                attribute, traffic, obs_space, windows_size_obs
             ),
             # bbox_inches="tight",
             pad_inches=0,
@@ -152,14 +152,14 @@ def plot_ws_comparison(
         plt.ylabel(data_index[attribute][1], fontsize=14)
         plt.grid()
         for slice in slices.keys():
-            for windows_size in windows_sizes:
+            for windows_size_obs in windows_sizes:
                 if attribute in slice_requirements[traffic][slice].keys():
                     hist = np.zeros((runs, steps_number))
                     for run_number in range(runs):
                         hist[run_number, :] = Slice.read_hist(
                             "test/{}/ws_{}/{}/{}/run{}".format(
                                 agent,
-                                windows_size,
+                                windows_size_obs,
                                 obs_space,
                                 traffic,
                                 run_number + 1,
@@ -178,10 +178,10 @@ def plot_ws_comparison(
                         hist,
                         label="{}, $W_s={}$".format(
                             slices_names_markers[slice][0],
-                            windows_size,
+                            windows_size_obs,
                         ),
                         marker=slices_names_markers[slice][1],
-                        color=ws_names_colors[windows_size],
+                        color=ws_names_colors[windows_size_obs],
                         markevery=50,
                     )
             if attribute in slice_requirements[traffic][slice].keys():
@@ -215,7 +215,7 @@ def plot_obs_comparison(
     trial_number: int,
     agent: str,
     slices_req: dict,
-    windows_size: int,
+    windows_size_obs: int,
     traffic: str,
     obs_spaces: list,
     runs: int,
@@ -258,7 +258,7 @@ def plot_obs_comparison(
                         hist[run_number, :] = Slice.read_hist(
                             "test/{}/ws_{}/{}/{}/run{}".format(
                                 agent,
-                                windows_size,
+                                windows_size_obs,
                                 obs_space,
                                 traffic,
                                 run_number + 1,
@@ -299,7 +299,7 @@ def plot_obs_comparison(
         os.makedirs("./results", exist_ok=True)
         fig.savefig(
             "./results/obs_comp_{}_{}_ws{}_{}.pdf".format(
-                attribute, traffic, windows_size, agent
+                attribute, traffic, windows_size_obs, agent
             ),
             # bbox_inches="tight",
             pad_inches=0,
@@ -344,14 +344,14 @@ def plot_reward_ws_comparison(
         plt.xlabel(x_label, fontsize=14)
         plt.ylabel("Reward", fontsize=14)
         plt.grid()
-        for windows_size in windows_sizes:
+        for windows_size_obs in windows_sizes:
             for agent in agents:
                 hist = np.zeros((runs, steps_number))
                 for run_number in range(runs):
                     hist[run_number, :] = Basestation.read_hist(
                         "test/{}/ws_{}/{}/{}/run{}".format(
                             agent,
-                            windows_size,
+                            windows_size_obs,
                             obs_space,
                             traffic,
                             run_number + 1,
@@ -363,9 +363,9 @@ def plot_reward_ws_comparison(
                     range(0, len(hist)),
                     hist,
                     label="{}, $W_s$={}".format(
-                        agents_names_colors[agent][0], windows_size
+                        agents_names_colors[agent][0], windows_size_obs
                     ),
-                    marker=ws_markers[windows_size],
+                    marker=ws_markers[windows_size_obs],
                     color=agents_names_colors[agent][1],
                     markevery=50,
                 )
@@ -386,7 +386,7 @@ def plot_reward_ws_comparison(
 def plot_reward_obs_comparison(
     trial_number: int,
     agents: list,
-    windows_size: int,
+    windows_size_obs: int,
     traffic: str,
     obs_spaces: list,
     runs: int,
@@ -423,7 +423,7 @@ def plot_reward_obs_comparison(
                     hist[run_number, :] = Basestation.read_hist(
                         "test/{}/ws_{}/{}/{}/run{}".format(
                             agent,
-                            windows_size,
+                            windows_size_obs,
                             obs_space,
                             traffic,
                             run_number + 1,
@@ -446,7 +446,7 @@ def plot_reward_obs_comparison(
         plt.legend(fontsize=12)
         os.makedirs("./results", exist_ok=True)
         fig.savefig(
-            "./results/agents_obs_comp_{}_ws{}.pdf".format(traffic, windows_size),
+            "./results/agents_obs_comp_{}_ws{}.pdf".format(traffic, windows_size_obs),
             # bbox_inches="tight",
             pad_inches=0,
             format="pdf",
@@ -499,15 +499,15 @@ slice_requirements = {
 #     10,
 # )
 
-plot_obs_comparison(
-    trial_number,
-    "ppo",
-    slice_requirements,
-    1,
-    traffics,
-    ["full", "partial"],
-    10,
-)
+# plot_obs_comparison(
+#     trial_number,
+#     "ppo",
+#     slice_requirements,
+#     1,
+#     traffics,
+#     ["full", "partial"],
+#     10,
+# )
 
 # plot_reward_ws_comparison(trial_number, agents, [1, 100], "light", "full", 10)
-# plot_reward_obs_comparison(trial_number, agents, 1, "light", ["full", "partial"], 10)
+plot_reward_obs_comparison(trial_number, agents, 1, "light", ["full", "partial"], 10)
