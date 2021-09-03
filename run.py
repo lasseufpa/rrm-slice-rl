@@ -9,7 +9,7 @@ from basestation import Basestation
 
 train_param = {
     "steps_per_trial": 2000,
-    "total_trials": 45,
+    "total_trials": 49,
     "runs_per_agent": 10,
 }
 
@@ -133,44 +133,44 @@ obs_space_modes = ["full", "partial"]
 windows_sizes = [1, 50, 100]
 seed = 10
 
-# # Training
-# print("\n############### Training ###############")
-# for windows_size_obs in tqdm(windows_sizes, desc="Windows size", leave=False):
-#     for obs_space_mode in tqdm(obs_space_modes, desc="Obs. Space mode", leave=False):
-#         for model in tqdm(models, desc="Models", leave=False):
-#             rng = np.random.default_rng(seed) if seed != -1 else np.random.default_rng()
-#             agent = create_agent(model, "train", obs_space_mode, windows_size_obs)
-#             for traffic_behavior in tqdm(traffics_list, desc="Traffics", leave=False):
-#                 for run_number in tqdm(
-#                     range(1, train_param["runs_per_agent"] + 1), desc="Run", leave=False
-#                 ):
-#                     env = Basestation(
-#                         bs_name="train/{}/ws_{}/{}/{}/run{}".format(
-#                             model,
-#                             windows_size_obs,
-#                             obs_space_mode,
-#                             traffic_behavior,
-#                             run_number,
-#                         ),
-#                         max_number_steps=test_param["steps_per_trial"],
-#                         max_number_trials=test_param["total_trials"],
-#                         traffic_types=traffic_types,
-#                         traffic_throughputs=traffics[traffic_behavior],
-#                         slice_requirements=slice_requirements[traffic_behavior],
-#                         windows_size_obs=windows_size_obs,
-#                         obs_space_mode=obs_space_mode,
-#                         rng=rng,
-#                         plots=True,
-#                     )
-#                     agent.set_env(env)
-#                     agent.learn(
-#                         total_timesteps=int(
-#                             train_param["total_trials"] * train_param["steps_per_trial"]
-#                         ),
-#                     )
-#             agent.save(
-#                 "./agents/{}_{}_ws{}".format(model, obs_space_mode, windows_size_obs)
-#             )
+# Training
+print("\n############### Training ###############")
+for windows_size_obs in tqdm(windows_sizes, desc="Windows size", leave=False):
+    for obs_space_mode in tqdm(obs_space_modes, desc="Obs. Space mode", leave=False):
+        for model in tqdm(models, desc="Models", leave=False):
+            rng = np.random.default_rng(seed) if seed != -1 else np.random.default_rng()
+            agent = create_agent(model, "train", obs_space_mode, windows_size_obs)
+            for traffic_behavior in tqdm(traffics_list, desc="Traffics", leave=False):
+                for run_number in tqdm(
+                    range(1, train_param["runs_per_agent"] + 1), desc="Run", leave=False
+                ):
+                    env = Basestation(
+                        bs_name="train/{}/ws_{}/{}/{}/run{}".format(
+                            model,
+                            windows_size_obs,
+                            obs_space_mode,
+                            traffic_behavior,
+                            run_number,
+                        ),
+                        max_number_steps=test_param["steps_per_trial"],
+                        max_number_trials=test_param["total_trials"],
+                        traffic_types=traffic_types,
+                        traffic_throughputs=traffics[traffic_behavior],
+                        slice_requirements=slice_requirements[traffic_behavior],
+                        windows_size_obs=windows_size_obs,
+                        obs_space_mode=obs_space_mode,
+                        rng=rng,
+                        plots=True,
+                    )
+                    agent.set_env(env)
+                    agent.learn(
+                        total_timesteps=int(
+                            train_param["total_trials"] * train_param["steps_per_trial"]
+                        ),
+                    )
+            agent.save(
+                "./agents/{}_{}_ws{}".format(model, obs_space_mode, windows_size_obs)
+            )
 
 # Test
 print("\n############### Testing ###############")

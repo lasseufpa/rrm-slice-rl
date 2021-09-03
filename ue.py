@@ -30,7 +30,8 @@ class UE:
         total_number_rbs: int = 17,
         plots: bool = False,
         rng: BitGenerator = np.random.default_rng(),
-        windows_size_obs: int = 100,
+        windows_size_obs: int = 1,
+        windows_size: int = 10,
     ) -> None:
         self.bs_name = bs_name
         self.id = id
@@ -47,6 +48,7 @@ class UE:
         self.buffer = Buffer(max_packets_buffer, buffer_max_lat)
         self.traffic_throughput = traffic_throughput
         self.windows_size_obs = windows_size_obs
+        self.windows_size = windows_size
         self.plots = plots
         self.get_arrived_packets = self.define_traffic_function()
         self.hist_labels = [
@@ -62,6 +64,7 @@ class UE:
         self.no_windows_hist = {
             hist_label: np.array([]) for hist_label in self.hist_labels
         }
+        self.number_pkt_loss = np.array([])
         self.rng = rng
 
     def define_traffic_function(self):
@@ -156,69 +159,49 @@ class UE:
             pkt_loss,
             self.se[step_number],
         ]
+        self.number_pkt_loss = np.append(self.number_pkt_loss, pkt_loss)
+
+        # Hist with no windows for log (not used in the observation space)
+        idx = (
+            slice(-(self.windows_size - 1), None)
+            if self.windows_size != 1
+            else slice(0, 0)
+        )
         for i, var in enumerate(self.no_windows_hist.items()):
-            self.no_windows_hist[var[0]] = (
-                np.append(self.no_windows_hist[var[0]], hist_vars[i])
-                if var[0] != "pkt_loss"
-                else np.append(
-                    self.no_windows_hist[var[0]],
-                    hist_vars[i] / (hist_vars[0] + np.sum(self.buffer.buffer)),
+            if var[0] == "pkt_loss":
+                buffer_pkts = (
+                    np.sum(self.buffer.buffer)
+                    + np.sum(self.no_windows_hist["pkt_snt"][idx])
+                    + np.sum(self.number_pkt_loss[idx])
+                    - np.sum(self.no_windows_hist["pkt_rcv"][idx])
                 )
-                if (hist_vars[0] + np.sum(self.buffer.buffer)) != 0
-                else np.append(self.no_windows_hist[var[0]], 0)
-            )
+                den = (
+                    np.sum(self.no_windows_hist["pkt_rcv"][idx])
+                    + hist_vars[0]
+                    + buffer_pkts
+                )
+                self.no_windows_hist[var[0]] = (
+                    np.append(
+                        self.no_windows_hist[var[0]],
+                        (np.sum(self.number_pkt_loss[idx]) + hist_vars[i]) / den,
+                    )
+                    if den != 0
+                    else np.append(self.no_windows_hist[var[0]], 0)
+                )
+            else:
+                self.no_windows_hist[var[0]] = np.append(
+                    self.no_windows_hist[var[0]], hist_vars[i]
+                )
 
-        slice_idx2 = None
-        if step_number < self.windows_size_obs:
-            slice_idx1 = 0
-        elif step_number >= self.windows_size_obs:
-            slice_idx1 = -(self.windows_size_obs - 1)
-            if not slice_idx1:
-                slice_idx2 = 0
-
-        hist_vars = [
-            np.mean(
-                np.append(
-                    self.no_windows_hist["pkt_rcv"][slice_idx1:slice_idx2],
-                    packets_received,
-                )
-            ),
-            np.mean(
-                np.append(
-                    self.no_windows_hist["pkt_snt"][slice_idx1:slice_idx2], packets_sent
-                )
-            ),
-            np.mean(
-                np.append(
-                    self.no_windows_hist["pkt_thr"][slice_idx1:slice_idx2],
-                    packets_throughput,
-                )
-            ),
-            np.mean(
-                np.append(
-                    self.no_windows_hist["buffer_occ"][slice_idx1:slice_idx2],
-                    buffer_occupancy,
-                )
-            ),
-            np.mean(
-                np.append(
-                    self.no_windows_hist["avg_lat"][slice_idx1:slice_idx2], avg_latency
-                )
-            ),
-            np.mean(
-                np.append(
-                    self.no_windows_hist["pkt_loss"][slice_idx1:slice_idx2], pkt_loss
-                )
-            ),
-            np.mean(
-                np.append(
-                    self.no_windows_hist["se"][slice_idx1:slice_idx2],
-                    self.se[step_number],
-                )
-            ),
-        ]
+        # Hist calculation to be used as observation space (using windows if applied)
+        idx_obs = slice(-(self.windows_size_obs), None)
         for i, var in enumerate(self.hist.items()):
-            self.hist[var[0]] = np.append(self.hist[var[0]], hist_vars[i])
+            value = (
+                np.mean(self.no_windows_hist[var[0]][idx_obs])
+                if self.no_windows_hist[var[0]].shape[0] != 0
+                else 0
+            )
+            self.hist[var[0]] = np.append(self.hist[var[0]], value)
 
     def save_hist(self) -> None:
         """
@@ -325,20 +308,13 @@ def main():
     ue = UE(
         bs_name="test",
         id=1,
-        max_packets_buffer=1024,
-        buffer_max_lat=10,
-        bandwidth=100,
-        packet_size=2,
         trial_number=1,
         traffic_type="embb",
-        frequency=1,
-        total_number_rbs=17,
-        traffic_throughput=10,
-        plots=False,
-        windows_size_obs=100,
+        traffic_throughput=50,
+        plots=True,
     )
     for i in range(2000):
-        ue.step(i, 10)
+        ue.step(i, 2)
     ue.save_hist()
 
 
