@@ -213,14 +213,30 @@ class Basestation(gym.Env):
         information.
         """
         slice_requirements = np.array([])
+        slice_req_norm_factors = [
+            100,
+            self.buffer_max_lat,
+            1,
+            100,
+            self.buffer_max_lat,
+            1,
+            100,
+            100,
+        ]
         observation_slices = np.array([])
         observation_ues = np.array([])
 
+        normalization_idx = 0
         for slice_req in self.slice_requirements:
             for attribute in self.slice_requirements[slice_req]:
                 slice_requirements = np.append(
-                    slice_requirements, self.slice_requirements[slice_req][attribute]
+                    slice_requirements,
+                    (
+                        self.slice_requirements[slice_req][attribute]
+                        / slice_req_norm_factors[normalization_idx]
+                    ),
                 )
+                normalization_idx += 1
 
         for slice in self.slices:
             for array in slice.hist.values():
