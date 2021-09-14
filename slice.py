@@ -171,20 +171,20 @@ class Slice:
         hist = Slice.read_hist(bs_name, trial_number, slice_id)
 
         title_labels = [
-            "Received Packets",
-            "Sent Packets",
-            "Packets Thr. Capacity",
+            "Received Throughput",
+            "Sent Throughput",
+            "Throughput Capacity",
             "Buffer Occupancy Rate",
             "Average Buffer Latency",
             "Packet Loss Rate",
         ]
         x_label = "Iteration [n]"
         y_labels = [
-            "# pkts",
-            "# pkts",
-            "# pkts",
+            "Throughput (Mbps)",
+            "Throughput (Mbps)",
+            "Throughput (Mbps)",
             "Occupancy rate",
-            "Latency [ms]",
+            "Latency (ms)",
             "Packet loss rate",
         ]
         w, h = plt.figaspect(0.6)
@@ -251,17 +251,10 @@ def main():
         UE(
             bs_name="test",
             id=i,
-            max_packets_buffer=1024,
-            buffer_max_lat=10,
-            bandwidth=100,
-            packet_size=2,
             trial_number=1,
             traffic_type="embb",
-            frequency=1,
-            total_number_rbs=17,
-            traffic_throughput=10,
-            plots=False,
-            windows_size_obs=100,
+            traffic_throughput=50,
+            plots=True,
         )
         for i in np.arange(1, number_ues + 1)
     ]

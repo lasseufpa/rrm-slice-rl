@@ -45,6 +45,7 @@ class UE:
         self.se = Channel.read_se_file(
             "./se/trial{}_f{}_ue{}.npy", trial_number, frequency, id
         )
+        self.buffer_max_lat = buffer_max_lat
         self.buffer = Buffer(max_packets_buffer, buffer_max_lat)
         self.traffic_throughput = traffic_throughput
         self.windows_size_obs = windows_size_obs
@@ -151,14 +152,15 @@ class UE:
         hist variable using windows average.
         """
         hist_vars = [
-            packets_received,
-            packets_sent,
-            packets_throughput,
+            self.packets_to_mbps(self.packet_size, packets_received),
+            self.packets_to_mbps(self.packet_size, packets_sent),
+            self.packets_to_mbps(self.packet_size, packets_throughput),
             buffer_occupancy,
             avg_latency,
             pkt_loss,
             self.se[step_number],
         ]
+        normalize_factors = [100e6, 100e6, 100e6, 1, self.buffer_max_lat, 1, 100]
         self.number_pkt_loss = np.append(self.number_pkt_loss, pkt_loss)
 
         # Hist with no windows for log (not used in the observation space)
@@ -193,7 +195,7 @@ class UE:
                     self.no_windows_hist[var[0]], hist_vars[i]
                 )
 
-        # Hist calculation to be used as observation space (using windows if applied)
+        # Hist calculation to be used as observation space (using windows and normalization if applied)
         idx_obs = slice(-(self.windows_size_obs), None)
         for i, var in enumerate(self.hist.items()):
             value = (
@@ -201,7 +203,9 @@ class UE:
                 if self.no_windows_hist[var[0]].shape[0] != 0
                 else 0
             )
-            self.hist[var[0]] = np.append(self.hist[var[0]], value)
+            self.hist[var[0]] = np.append(
+                self.hist[var[0]], value / normalize_factors[i]
+            )
 
     def save_hist(self) -> None:
         """
@@ -245,20 +249,20 @@ class UE:
         hist = UE.read_hist(bs_name, trial_number, ue_id)
 
         title_labels = [
-            "Received Packets",
-            "Sent Packets",
-            "Packets Thr. Capacity",
+            "Received Throughput",
+            "Sent Throughput",
+            "Throughput Capacity",
             "Buffer Occupancy Rate",
             "Average Buffer Latency",
             "Packet Loss Rate",
         ]
         x_label = "Iteration [n]"
         y_labels = [
-            "# pkts",
-            "# pkts",
-            "# pkts",
+            "Throughput (Mbps)",
+            "Throughput (Mbps)",
+            "Throughput (Mbps)",
             "Occupancy rate",
-            "Latency [ms]",
+            "Latency (ms)",
             "Packet loss rate",
         ]
         w, h = plt.figaspect(0.6)
@@ -281,6 +285,10 @@ class UE:
             dpi=100,
         )
         plt.close()
+
+    @staticmethod
+    def packets_to_mbps(packet_size, number_packets):
+        return packet_size * number_packets / 1e6
 
     def step(self, step_number: int, number_rbs_allocated: int) -> None:
         """

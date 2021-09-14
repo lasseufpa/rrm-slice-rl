@@ -256,10 +256,7 @@ class Basestation(gym.Env):
                 reward += (
                     -200
                     if slice_hist["pkt_thr"]
-                    < self.mbps_to_packets(
-                        self.packet_size,
-                        self.slice_requirements["embb"]["throughput"],
-                    )
+                    < self.slice_requirements["embb"]["throughput"]
                     else 200
                 )
                 # Latency contribution
@@ -281,10 +278,7 @@ class Basestation(gym.Env):
                 reward += (
                     -100
                     if slice_hist["pkt_thr"]
-                    < self.mbps_to_packets(
-                        self.packet_size,
-                        self.slice_requirements["urllc"]["throughput"],
-                    )
+                    < self.slice_requirements["urllc"]["throughput"]
                     else 100
                 )
                 # Latency contribution
@@ -306,20 +300,14 @@ class Basestation(gym.Env):
                 reward += (
                     -100
                     if slice_hist["long_term_pkt_thr"]
-                    < self.mbps_to_packets(
-                        self.packet_size,
-                        self.slice_requirements["be"]["long_term_pkt_thr"],
-                    )
+                    < self.slice_requirements["be"]["long_term_pkt_thr"]
                     else 100
                 )
                 # Fifth percentile throughput contribution
                 reward += (
                     -100
                     if slice_hist["fifth_perc_pkt_thr"]
-                    < self.mbps_to_packets(
-                        self.packet_size,
-                        self.slice_requirements["be"]["fifth_perc_pkt_thr"],
-                    )
+                    < self.slice_requirements["be"]["fifth_perc_pkt_thr"]
                     else 100
                 )
 
@@ -429,11 +417,6 @@ class Basestation(gym.Env):
                 plt.grid()
                 for slice_id in range(1, max_slice_id + 1):
                     hist = Slice.read_hist(bs_name, trial_number, slice_id)[plot_number]
-                    hist = (
-                        Basestation.packets_to_mbps(8192 * 8, hist)
-                        if plot_number in [0, 1, 2, 6, 7]
-                        else hist
-                    )
                     plt.plot(
                         range(0, len(hist), step),
                         hist[0::step],
