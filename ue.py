@@ -160,7 +160,7 @@ class UE:
             pkt_loss,
             self.se[step_number],
         ]
-        normalize_factors = [100e6, 100e6, 100e6, 1, self.buffer_max_lat, 1, 100]
+        normalize_factors = [100, 100, 100, 1, self.buffer_max_lat, 1, 100]
         self.number_pkt_loss = np.append(self.number_pkt_loss, pkt_loss)
 
         # Hist with no windows for log (not used in the observation space)

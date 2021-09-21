@@ -107,6 +107,16 @@ class Basestation(gym.Env):
             hist_label: np.array([]) if hist_label != "actions" else np.empty((0, 3))
             for hist_label in self.hist_labels
         }
+        self.slice_req_norm_factors = [
+            100,
+            self.buffer_max_lat,
+            1,
+            100,
+            self.buffer_max_lat,
+            1,
+            100,
+            100,
+        ]
 
     def step(self, action: int):
         """
@@ -213,16 +223,6 @@ class Basestation(gym.Env):
         information.
         """
         slice_requirements = np.array([])
-        slice_req_norm_factors = [
-            100,
-            self.buffer_max_lat,
-            1,
-            100,
-            self.buffer_max_lat,
-            1,
-            100,
-            100,
-        ]
         observation_slices = np.array([])
         observation_ues = np.array([])
 
@@ -233,7 +233,7 @@ class Basestation(gym.Env):
                     slice_requirements,
                     (
                         self.slice_requirements[slice_req][attribute]
-                        / slice_req_norm_factors[normalization_idx]
+                        / self.slice_req_norm_factors[normalization_idx]
                     ),
                 )
                 normalization_idx += 1
@@ -273,6 +273,7 @@ class Basestation(gym.Env):
                     -200
                     if slice_hist["pkt_thr"]
                     < self.slice_requirements["embb"]["throughput"]
+                    / self.slice_req_norm_factors[0]
                     else 200
                 )
                 # Latency contribution
@@ -280,6 +281,7 @@ class Basestation(gym.Env):
                     100
                     if slice_hist["avg_lat"]
                     <= self.slice_requirements["embb"]["latency"]
+                    / self.slice_req_norm_factors[1]
                     else -100
                 )
                 # Packet loss contribution
@@ -287,6 +289,7 @@ class Basestation(gym.Env):
                     100
                     if slice_hist["pkt_loss"]
                     <= self.slice_requirements["embb"]["pkt_loss"]
+                    / self.slice_req_norm_factors[2]
                     else -100
                 )
             elif slice.name == "urllc":
@@ -295,6 +298,7 @@ class Basestation(gym.Env):
                     -100
                     if slice_hist["pkt_thr"]
                     < self.slice_requirements["urllc"]["throughput"]
+                    / self.slice_req_norm_factors[3]
                     else 100
                 )
                 # Latency contribution
@@ -302,6 +306,7 @@ class Basestation(gym.Env):
                     200
                     if slice_hist["avg_lat"]
                     <= self.slice_requirements["urllc"]["latency"]
+                    / self.slice_req_norm_factors[4]
                     else -200
                 )
                 # Packet loss contribution
@@ -309,6 +314,7 @@ class Basestation(gym.Env):
                     200
                     if slice_hist["pkt_loss"]
                     <= self.slice_requirements["urllc"]["pkt_loss"]
+                    / self.slice_req_norm_factors[5]
                     else -200
                 )
             elif slice.name == "be":
@@ -317,6 +323,7 @@ class Basestation(gym.Env):
                     -100
                     if slice_hist["long_term_pkt_thr"]
                     < self.slice_requirements["be"]["long_term_pkt_thr"]
+                    / self.slice_req_norm_factors[6]
                     else 100
                 )
                 # Fifth percentile throughput contribution
@@ -324,6 +331,7 @@ class Basestation(gym.Env):
                     -100
                     if slice_hist["fifth_perc_pkt_thr"]
                     < self.slice_requirements["be"]["fifth_perc_pkt_thr"]
+                    / self.slice_req_norm_factors[7]
                     else 100
                 )
 
