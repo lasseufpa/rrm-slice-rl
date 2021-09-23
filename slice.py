@@ -247,6 +247,7 @@ def main():
     const_rbs = 2
     number_ues = 3
     max_number_steps = 2000
+    rng = np.random.default_rng(1)
     ues = [
         UE(
             bs_name="test",
@@ -255,6 +256,7 @@ def main():
             traffic_type="embb",
             traffic_throughput=50,
             plots=True,
+            rng=rng,
         )
         for i in np.arange(1, number_ues + 1)
     ]

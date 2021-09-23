@@ -418,6 +418,7 @@ class Basestation(gym.Env):
                 "buffer_occ_rate",
                 "avg_buffer_lat",
                 "pkt_loss",
+                "se",
                 "long_term_pkt_thr",
                 "fifth_perc_pkt_thr",
             ]
@@ -429,6 +430,7 @@ class Basestation(gym.Env):
                 "Occupancy rate",
                 "Latency [ms]",
                 "Packet loss rate",
+                "Spectral efficiency (bits/s/Hz)",
                 "Long term average thr. (Mbps)",
                 "Fifth percentile throughput (Mbps)",
             ]
@@ -540,6 +542,7 @@ def main():
         "be": {"long_term_pkt_thr": 5, "fifth_perc_pkt_thr": 2},
     }
     trials = 2
+    rng = np.random.default_rng(1)
     basestation = Basestation(
         bs_name="test",
         max_number_trials=trials,
@@ -548,6 +551,7 @@ def main():
         slice_requirements=slice_requirements,
         obs_space_mode="partial",
         plots=True,
+        rng=rng,
     )
 
     basestation.reset()
