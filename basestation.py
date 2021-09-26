@@ -353,10 +353,20 @@ class Basestation(gym.Env):
         of the option into the array with all possible RBs allocations for
         these slices.
         """
+
+        def valid_comb(comb):
+            divisors = [3, 5, 17]
+            for value in comb:
+                if 0 in np.mod(value, divisors):
+                    pass
+                else:
+                    return False
+            return True
+
         combinations = []
         combs = product(range(0, total_rbs + 1), repeat=number_slices)
         for comb in combs:
-            if np.sum(comb) == total_rbs:
+            if np.sum(comb) == total_rbs and valid_comb(comb):
                 combinations.append(comb)
         return np.asarray(combinations)
 
