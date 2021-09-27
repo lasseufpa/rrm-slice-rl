@@ -340,7 +340,8 @@ class Basestation(gym.Env):
     def update_ues_traffic(self, traffics: dict) -> None:
         self.traffic_types = traffics
 
-    def create_combinations(self, total_rbs: int, number_slices: int):
+    @staticmethod
+    def create_combinations(total_rbs: int, number_slices: int):
         """
         Create the combinations of possible arrays with RBs allocation for each
         slice. For instance, let's assume 3 slices and 17 RBs available in the

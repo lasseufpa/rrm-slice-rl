@@ -2,6 +2,8 @@ from itertools import product
 
 import numpy as np
 
+from basestation import Basestation
+
 
 class BaselineAgent:
     """
@@ -30,7 +32,7 @@ class BaselineAgent:
         self.bandwidth = bandwidth
         self.total_number_rbs = total_number_rbs
         self.packet_size = packet_size
-        self.action_space = self.create_combinations(total_rbs, slices_number)
+        self.action_space = Basestation.create_combinations(total_rbs, slices_number)
         self.round_robin_alloc = [6, 6, 5]
 
     def max_throughput(self, obs: np.array) -> int:
@@ -75,26 +77,6 @@ class BaselineAgent:
         )
         action = np.argmin(np.sum(np.abs(self.action_space - rbs_allocation), axis=1))
         return action, []
-
-    def create_combinations(self, total_rbs: int, number_slices: int):
-        """
-        Create the combinations of possible arrays with RBs allocation for each
-        slice. For instance, let's assume 3 slices and 17 RBs available in the
-        basestation, a valid array should be [1, 13, 3] since its summation is
-        equal to 17 RBs. Moreover, it indicates that the first slice received 1
-        RB, the second received 13 RBs, and the third received 3 RBs. A valid
-        array always has a summation equal to the total number of RBs in a
-        basestation and has its array-length equal to the number of slices. An
-        action taken by RL agent is a discrete number that represents the index
-        of the option into the array with all possible RBs allocations for
-        these slices.
-        """
-        combinations = []
-        combs = product(range(0, total_rbs + 1), repeat=number_slices)
-        for comb in combs:
-            if np.sum(comb) == total_rbs:
-                combinations.append(comb)
-        return np.asarray(combinations)
 
     def set_env(self, _):
         pass
