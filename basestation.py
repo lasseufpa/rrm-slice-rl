@@ -80,17 +80,22 @@ class Basestation(gym.Env):
                 low=0,
                 high=np.inf,
                 shape=(
-                    self.ues.shape[0] * 6
-                    + self.slices.shape[0] * 9  # Slices
-                    + 8  # Slice requirements
-                    + self.ues.shape[0],  # UEs spectral efficiency
+                    self.ues.shape[0] * np.sum(len(self.ues[0].hist.keys()))  # UEs
+                    + self.slices.shape[0]
+                    * np.sum(len(self.slices[0].hist.keys()))  # Slices
+                    + np.sum(
+                        len(item) for item in self.slice_requirements.values()
+                    )  # Slice requirements
                 ),
             )
         elif self.obs_space_mode == "partial":
             self.observation_space = spaces.Box(
                 low=0,
                 high=np.inf,
-                shape=(self.slices.shape[0] * 9 + 8,),  # Slices + Slice requirements
+                shape=(
+                    self.slices.shape[0] * np.sum(len(self.slices[0].hist.keys()))
+                    + np.sum(len(item) for item in self.slice_requirements.values()),
+                ),  # Slices + Slice requirements
             )
         else:
             raise Exception(
