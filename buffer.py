@@ -67,9 +67,13 @@ class Buffer:
         packets in the buffer are not considered.
         """
         if np.sum(self.cumulative_buffer) != 0:
-            return np.sum(
-                (self.cumulative_buffer) * np.arange(1, self.max_packets_age + 1)
-            ) / np.sum(self.cumulative_buffer)
+            return np.round(
+                np.sum(
+                    (self.cumulative_buffer) * np.arange(1, self.max_packets_age + 1)
+                )
+                / np.sum(self.cumulative_buffer),
+                1,
+            )
         else:
             return 0
 

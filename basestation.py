@@ -84,8 +84,11 @@ class Basestation(gym.Env):
                     + self.slices.shape[0]
                     * np.sum(len(self.slices[0].hist.keys()))  # Slices
                     + np.sum(
-                        len(item) for item in self.slice_requirements.values()
-                    )  # Slice requirements
+                        np.fromiter(
+                            (len(item) for item in self.slice_requirements.values()),
+                            int,
+                        )
+                    ),  # Slice requirements
                 ),
             )
         elif self.obs_space_mode == "partial":
@@ -94,7 +97,12 @@ class Basestation(gym.Env):
                 high=np.inf,
                 shape=(
                     self.slices.shape[0] * np.sum(len(self.slices[0].hist.keys()))
-                    + np.sum(len(item) for item in self.slice_requirements.values()),
+                    + np.sum(
+                        np.fromiter(
+                            (len(item) for item in self.slice_requirements.values()),
+                            int,
+                        )
+                    ),
                 ),  # Slices + Slice requirements
             )
         else:
