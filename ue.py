@@ -156,7 +156,7 @@ class UE:
             self.packets_to_mbps(self.packet_size, packets_sent),
             self.packets_to_mbps(self.packet_size, packets_throughput),
             buffer_occupancy,
-            round(avg_latency, 2),
+            round(avg_latency),
             pkt_loss,
             self.se[step_number],
         ]
