@@ -166,7 +166,6 @@ for windows_size_obs in tqdm(windows_sizes, desc="Windows size", leave=False):
                         windows_size_obs=windows_size_obs,
                         obs_space_mode=obs_space_mode,
                         rng=rng,
-                        plots=True,
                     )
                     agent.set_env(env)
                     agent.learn(
@@ -211,6 +210,7 @@ for windows_size_obs in tqdm(windows_sizes, desc="Windows size", leave=False):
                         obs_space_mode=obs_space_mode,
                         rng=rng,
                         plots=True,
+                        save_hist=True,
                     )
                     agent.set_env(env)
                     obs = env.reset(test_param["initial_trial"])
@@ -226,6 +226,6 @@ for windows_size_obs in tqdm(windows_sizes, desc="Windows size", leave=False):
                             leave=False,
                             desc="Steps",
                         ):
-                            action, _states = agent.predict(obs)
+                            action, _states = agent.predict(obs, deterministic=True)
                             obs, rewards, dones, info = env.step(action)
                         env.reset()
