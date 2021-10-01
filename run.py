@@ -9,15 +9,15 @@ from basestation import Basestation
 
 train_param = {
     "steps_per_trial": 2000,
-    "total_trials": 49,
-    "runs_per_agent": 10,
+    "total_trials": 1,
+    "runs_per_agent": 100,
 }
 
 test_param = {
     "steps_per_trial": 2000,
-    "total_trials": 50,
-    "initial_trial": 50,
-    "runs_per_agent": 10,
+    "total_trials": 1,
+    "initial_trial": 1,
+    "runs_per_agent": 1,
 }
 
 # Create environment
@@ -30,22 +30,22 @@ traffics = {
         ),
         axis=None,
     ),
-    "moderate": np.concatenate(
-        (
-            np.repeat([20], 4),
-            np.repeat([2], 3),
-            np.repeat([10], 3),
-        ),
-        axis=None,
-    ),
-    "heavy": np.concatenate(
-        (
-            np.repeat([30], 4),
-            np.repeat([3], 3),
-            np.repeat([15], 3),
-        ),
-        axis=None,
-    ),
+    # "moderate": np.concatenate(
+    #     (
+    #         np.repeat([20], 4),
+    #         np.repeat([2], 3),
+    #         np.repeat([10], 3),
+    #     ),
+    #     axis=None,
+    # ),
+    # "heavy": np.concatenate(
+    #     (
+    #         np.repeat([30], 4),
+    #         np.repeat([3], 3),
+    #         np.repeat([15], 3),
+    #     ),
+    #     axis=None,
+    # ),
 }
 slice_requirements = {
     "light": {
@@ -53,16 +53,16 @@ slice_requirements = {
         "urllc": {"throughput": 1, "latency": 1, "pkt_loss": 0.001},
         "be": {"long_term_pkt_thr": 5, "fifth_perc_pkt_thr": 2},
     },
-    "moderate": {
-        "embb": {"throughput": 20, "latency": 20, "pkt_loss": 0.2},
-        "urllc": {"throughput": 2, "latency": 1, "pkt_loss": 0.001},
-        "be": {"long_term_pkt_thr": 10, "fifth_perc_pkt_thr": 5},
-    },
-    "heavy": {
-        "embb": {"throughput": 30, "latency": 20, "pkt_loss": 0.2},
-        "urllc": {"throughput": 3, "latency": 1, "pkt_loss": 0.001},
-        "be": {"long_term_pkt_thr": 15, "fifth_perc_pkt_thr": 5},
-    },
+    # "moderate": {
+    #     "embb": {"throughput": 20, "latency": 20, "pkt_loss": 0.2},
+    #     "urllc": {"throughput": 2, "latency": 1, "pkt_loss": 0.001},
+    #     "be": {"long_term_pkt_thr": 10, "fifth_perc_pkt_thr": 5},
+    # },
+    # "heavy": {
+    #     "embb": {"throughput": 30, "latency": 20, "pkt_loss": 0.2},
+    #     "urllc": {"throughput": 3, "latency": 1, "pkt_loss": 0.001},
+    #     "be": {"long_term_pkt_thr": 15, "fifth_perc_pkt_thr": 5},
+    # },
 }
 
 traffic_types = np.concatenate(
@@ -127,10 +127,12 @@ def create_agent(type: str, mode: str, obs_space_mode: str, windows_size_obs: in
             return BaselineAgent("rr")
 
 
-models = ["a2c", "ppo", "dqn"]
+models = ["ppo"]
 traffics_list = traffics.keys()
-obs_space_modes = ["full", "partial"]
-windows_sizes = [1, 50, 100]
+# obs_space_modes = ["full", "partial"]
+obs_space_modes = ["full"]
+# windows_sizes = [1, 50, 100]
+windows_sizes = [1]
 seed = 10
 
 # Training
@@ -138,12 +140,16 @@ print("\n############### Training ###############")
 for windows_size_obs in tqdm(windows_sizes, desc="Windows size", leave=False):
     for obs_space_mode in tqdm(obs_space_modes, desc="Obs. Space mode", leave=False):
         for model in tqdm(models, desc="Models", leave=False):
-            rng = np.random.default_rng(seed) if seed != -1 else np.random.default_rng()
             agent = create_agent(model, "train", obs_space_mode, windows_size_obs)
             for traffic_behavior in tqdm(traffics_list, desc="Traffics", leave=False):
                 for run_number in tqdm(
                     range(1, train_param["runs_per_agent"] + 1), desc="Run", leave=False
                 ):
+                    rng = (
+                        np.random.default_rng(seed)
+                        if seed != -1
+                        else np.random.default_rng()
+                    )
                     env = Basestation(
                         bs_name="train/{}/ws_{}/{}/{}/run{}".format(
                             model,
@@ -174,17 +180,20 @@ for windows_size_obs in tqdm(windows_sizes, desc="Windows size", leave=False):
 
 # Test
 print("\n############### Testing ###############")
-# models_test = np.append(models, ["mt", "rr", "pf"])
-models_test = ["rr"]
+models_test = np.append(models, ["mt", "rr", "pf"])
 for windows_size_obs in tqdm(windows_sizes, desc="Windows size", leave=False):
     for obs_space_mode in tqdm(obs_space_modes, desc="Obs. Space mode", leave=False):
         for model in tqdm(models_test, desc="Models", leave=False):
-            rng = np.random.default_rng(seed) if seed != -1 else np.random.default_rng()
             agent = create_agent(model, "test", obs_space_mode, windows_size_obs)
             for traffic_behavior in tqdm(traffics_list, desc="Traffics", leave=False):
                 for run_number in tqdm(
                     range(1, test_param["runs_per_agent"] + 1), desc="Run", leave=False
                 ):
+                    rng = (
+                        np.random.default_rng(seed)
+                        if seed != -1
+                        else np.random.default_rng()
+                    )
                     env = Basestation(
                         bs_name="test/{}/ws_{}/{}/{}/run{}".format(
                             model,

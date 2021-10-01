@@ -5,7 +5,7 @@ tensorboard-logs/
 *.zip
 
 # Variables history
-hist/
+hist*/
 
 # Quadriga Channels
 channels/

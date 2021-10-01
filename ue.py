@@ -31,7 +31,7 @@ class UE:
         plots: bool = False,
         rng: BitGenerator = np.random.default_rng(),
         windows_size_obs: int = 1,
-        windows_size: int = 10,
+        windows_size: int = 2000,
     ) -> None:
         self.bs_name = bs_name
         self.id = id
@@ -156,7 +156,7 @@ class UE:
             self.packets_to_mbps(self.packet_size, packets_sent),
             self.packets_to_mbps(self.packet_size, packets_throughput),
             buffer_occupancy,
-            avg_latency,
+            round(avg_latency, 2),
             pkt_loss,
             self.se[step_number],
         ]
