@@ -10,14 +10,14 @@ from basestation import Basestation
 train_param = {
     "steps_per_trial": 2000,
     "total_trials": 1,
-    "runs_per_agent": 100,
+    "runs_per_agent": 1000,
 }
 
 test_param = {
     "steps_per_trial": 2000,
     "total_trials": 1,
     "initial_trial": 1,
-    "runs_per_agent": 1,
+    "runs_per_agent": 10,
 }
 
 # Create environment
@@ -131,8 +131,8 @@ models = ["ppo"]
 traffics_list = traffics.keys()
 # obs_space_modes = ["full", "partial"]
 obs_space_modes = ["full"]
-# windows_sizes = [1, 50, 100]
-windows_sizes = [1]
+windows_sizes = [1, 10, 50]
+# windows_sizes = [1]
 seed = 10
 
 # Training
