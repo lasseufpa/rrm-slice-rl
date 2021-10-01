@@ -45,7 +45,8 @@ class Basestation(gym.Env):
         plots: bool = False,
         slice_plots: bool = False,
         ue_plots: bool = False,
-        save_hist: bool = False,
+        save_hist_bool: bool = False,
+        normalize_ue_obs: bool = False,
     ) -> None:
         self.bs_name = bs_name
         self.max_packets_buffer = max_packets_buffer
@@ -68,7 +69,8 @@ class Basestation(gym.Env):
         self.plots = plots
         self.slice_plots = slice_plots
         self.ue_plots = ue_plots
-        self.save_hist = save_hist
+        self.save_hist_bool = save_hist_bool
+        self.normalize_ue_obs = normalize_ue_obs
         self.rng = rng
 
         self.ues, self.slices = self.create_scenario()
@@ -145,12 +147,12 @@ class Basestation(gym.Env):
                 self.max_number_steps,
                 action_values[i],
             )
-            if (self.step_number == self.max_number_steps - 1) and self.save_hist:
+            if (self.step_number == self.max_number_steps - 1) and self.save_hist_bool:
                 self.slices[i].save_hist()
 
         reward = self.calculate_reward()
         self.update_hist(action_values, reward)
-        if (self.step_number == self.max_number_steps - 1) and self.save_hist:
+        if (self.step_number == self.max_number_steps - 1) and self.save_hist_bool:
             self.save_hist()
         self.step_number += 1
 
@@ -209,6 +211,7 @@ class Basestation(gym.Env):
                     plots=self.ue_plots,
                     rng=self.rng,
                     windows_size_obs=self.windows_size_obs,
+                    normalize_obs=self.normalize_ue_obs,
                 )
                 for i in np.arange(1, self.number_ues + 1)
             ]
@@ -225,7 +228,7 @@ class Basestation(gym.Env):
                     trial_number=self.trial_number,
                     ues=ues[indexes == (i - 1)],
                     plots=self.slice_plots,
-                    save_hist=self.save_hist,
+                    save_hist=self.save_hist_bool,
                 )
                 for i in range(1, len(values) + 1)
             ]

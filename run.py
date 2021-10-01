@@ -2,6 +2,7 @@ import numpy as np
 from stable_baselines3 import A2C, DQN, PPO
 from stable_baselines3.common.env_checker import check_env
 from stable_baselines3.common.evaluation import evaluate_policy
+from stable_baselines3.common.vec_env import DummyVecEnv, VecNormalize
 from tqdm import tqdm
 
 from baselines import BaselineAgent
@@ -87,6 +88,8 @@ def create_agent(type: str, mode: str, obs_space_mode: str, windows_size_obs: in
         obs_space_mode=obs_space_mode,
         plots=True,
     )
+    env = DummyVecEnv([lambda: env])
+    env = VecNormalize(env)
     if mode == "train":
         if type == "a2c":
             return A2C(
@@ -141,6 +144,7 @@ for windows_size_obs in tqdm(windows_sizes, desc="Windows size", leave=False):
     for obs_space_mode in tqdm(obs_space_modes, desc="Obs. Space mode", leave=False):
         for model in tqdm(models, desc="Models", leave=False):
             agent = create_agent(model, "train", obs_space_mode, windows_size_obs)
+            agent.set_random_seed(seed)
             for traffic_behavior in tqdm(traffics_list, desc="Traffics", leave=False):
                 for run_number in tqdm(
                     range(1, train_param["runs_per_agent"] + 1), desc="Run", leave=False
@@ -167,6 +171,8 @@ for windows_size_obs in tqdm(windows_sizes, desc="Windows size", leave=False):
                         obs_space_mode=obs_space_mode,
                         rng=rng,
                     )
+                    env = DummyVecEnv([lambda: env])
+                    env = VecNormalize(env)
                     agent.set_env(env)
                     agent.learn(
                         total_timesteps=int(
@@ -212,6 +218,9 @@ for windows_size_obs in tqdm(windows_sizes, desc="Windows size", leave=False):
                         plots=True,
                         save_hist=True,
                     )
+                    if model in models:
+                        env = DummyVecEnv([lambda: env])
+                        env = VecNormalize(env)
                     agent.set_env(env)
                     obs = env.reset(test_param["initial_trial"])
                     for _ in tqdm(

@@ -32,6 +32,7 @@ class UE:
         rng: BitGenerator = np.random.default_rng(),
         windows_size_obs: int = 1,
         windows_size: int = 2000,
+        normalize_obs: bool = False,
     ) -> None:
         self.bs_name = bs_name
         self.id = id
@@ -51,6 +52,7 @@ class UE:
         self.windows_size_obs = windows_size_obs
         self.windows_size = windows_size
         self.plots = plots
+        self.normalize_obs = normalize_obs
         self.get_arrived_packets = self.define_traffic_function()
         self.hist_labels = [
             "pkt_rcv",
@@ -160,7 +162,11 @@ class UE:
             pkt_loss,
             self.se[step_number],
         ]
-        normalize_factors = [100, 100, 100, 1, self.buffer_max_lat, 1, 100]
+        normalize_factors = (
+            [100, 100, 100, 1, self.buffer_max_lat, 1, 100]
+            if self.normalize_obs
+            else [1, 1, 1, 1, 1, 1, 1]
+        )
         self.number_pkt_loss = np.append(self.number_pkt_loss, pkt_loss)
 
         # Hist with no windows for log (not used in the observation space)
