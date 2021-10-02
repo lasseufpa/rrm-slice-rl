@@ -45,7 +45,7 @@ class Basestation(gym.Env):
         plots: bool = False,
         slice_plots: bool = False,
         ue_plots: bool = False,
-        save_hist_bool: bool = False,
+        save_hist: bool = False,
         normalize_ue_obs: bool = False,
     ) -> None:
         self.bs_name = bs_name
@@ -69,7 +69,7 @@ class Basestation(gym.Env):
         self.plots = plots
         self.slice_plots = slice_plots
         self.ue_plots = ue_plots
-        self.save_hist_bool = save_hist_bool
+        self.save_hist_bool = save_hist
         self.normalize_ue_obs = normalize_ue_obs
         self.rng = rng
 
