@@ -31,7 +31,7 @@ class Slice:
         self.trial_number = trial_number
         self.ues = ues
         self.plots = plots
-        self.save_hist = save_hist
+        self.save_hist_bool = save_hist
         self.hist_labels = [
             "pkt_rcv",
             "pkt_snt",
@@ -238,7 +238,7 @@ class Slice:
             ue.step(step_number, rbs_ues[i])
             hist_ues.append(ue.hist)
             hist_nowindows_ues.append(ue.no_windows_hist)
-            if (step_number == (max_step_number - 1)) and self.save_hist:
+            if (step_number == (max_step_number - 1)) and self.save_hist_bool:
                 ue.save_hist()
 
         # Update slice history

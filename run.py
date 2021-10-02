@@ -218,10 +218,14 @@ for windows_size_obs in tqdm(windows_sizes, desc="Windows size", leave=False):
                         plots=True,
                         save_hist=True,
                     )
-                    obs = env.reset(test_param["initial_trial"])
+                    obs = (
+                        [env.reset(test_param["initial_trial"])]
+                        if model in models
+                        else env.reset(test_param["initial_trial"])
+                    )
                     if model in models:
                         env = DummyVecEnv([lambda: env])
-                        env = VecNormalize(env)
+                        env = VecNormalize(env, norm_reward=False)
                     agent.set_env(env)
                     for _ in tqdm(
                         range(
@@ -235,6 +239,10 @@ for windows_size_obs in tqdm(windows_sizes, desc="Windows size", leave=False):
                             leave=False,
                             desc="Steps",
                         ):
-                            action, _states = agent.predict(obs, deterministic=True)
+                            action, _states = (
+                                agent.predict(obs, deterministic=True)
+                                if model in models
+                                else agent.predict(obs)
+                            )
                             obs, rewards, dones, info = env.step(action)
                         env.reset()
