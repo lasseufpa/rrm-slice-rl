@@ -331,6 +331,7 @@ def plot_reward_ws_comparison(
     }
     ws_markers = {
         1: "*",
+        10: "o",
         50: "p",
         100: "d",
     }
