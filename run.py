@@ -218,11 +218,11 @@ for windows_size_obs in tqdm(windows_sizes, desc="Windows size", leave=False):
                         plots=True,
                         save_hist=True,
                     )
+                    obs = env.reset(test_param["initial_trial"])
                     if model in models:
                         env = DummyVecEnv([lambda: env])
                         env = VecNormalize(env)
                     agent.set_env(env)
-                    obs = env.reset(test_param["initial_trial"])
                     for _ in tqdm(
                         range(
                             test_param["total_trials"] - test_param["initial_trial"] + 1
