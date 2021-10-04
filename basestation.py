@@ -285,7 +285,7 @@ class Basestation(gym.Env):
         """
         reward = 0
         for slice in self.slices:
-            slice_hist = slice.get_last_hist()
+            slice_hist = slice.get_last_no_windows_hist()
             if slice.name == "embb":
                 # Throughput contribution
                 reward += (
