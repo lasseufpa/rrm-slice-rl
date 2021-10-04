@@ -124,16 +124,20 @@ class Basestation(gym.Env):
             hist_label: np.array([]) if hist_label != "actions" else np.empty((0, 3))
             for hist_label in self.hist_labels
         }
-        self.slice_req_norm_factors = [
-            100,
-            self.buffer_max_lat,
-            1,
-            100,
-            self.buffer_max_lat,
-            1,
-            100,
-            100,
-        ]
+        self.slice_req_norm_factors = (
+            [
+                100,
+                self.buffer_max_lat,
+                1,
+                100,
+                self.buffer_max_lat,
+                1,
+                100,
+                100,
+            ]
+            if self.normalize_ue_obs
+            else [1, 1, 1, 1, 1, 1, 1, 1]
+        )
 
     def step(self, action: int):
         """
