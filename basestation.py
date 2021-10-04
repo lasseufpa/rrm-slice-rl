@@ -580,7 +580,8 @@ def main():
         traffic_throughputs=traffic_throughputs,
         slice_requirements=slice_requirements,
         obs_space_mode="partial",
-        plots=False,
+        plots=True,
+        save_hist=True,
         rng=rng,
     )
 
