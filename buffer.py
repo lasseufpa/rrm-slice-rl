@@ -9,8 +9,8 @@ class Buffer:
     """
 
     def __init__(self, max_packets_buffer: int, max_packet_age: int) -> None:
-        self.buffer = np.zeros(max_packet_age)
-        self.cumulative_buffer = np.zeros(max_packet_age)
+        self.buffer = np.zeros(max_packet_age + 1)
+        self.cumulative_buffer = np.zeros(max_packet_age + 1)
         self.max_packets_buffer = max_packets_buffer
         self.max_packets_age = max_packet_age
         self.dropped_packets = 0  # number of dropped packets per step
@@ -37,19 +37,19 @@ class Buffer:
             )
             self.buffer[0] = self.max_packets_buffer - np.sum(self.buffer)
 
-    def send_packets(self, packets_available_to_sent: int) -> None:
+    def send_packets(self, packets_available_to_send: int) -> None:
         """
         Transmit packets from buffer to free buffer space. It allocates the packets
         waiting longer time (near from last array element) first.
         """
         tmp_buffer = self.buffer.copy()
-        if (self.get_buffer_occupancy() != 0) or (packets_available_to_sent != 0):
+        if (self.get_buffer_occupancy() != 0) or (packets_available_to_send != 0):
             for i in np.arange(self.buffer.shape[0])[::-1]:
-                if packets_available_to_sent >= self.buffer[i]:
-                    packets_available_to_sent -= self.buffer[i]
+                if packets_available_to_send >= self.buffer[i]:
+                    packets_available_to_send -= self.buffer[i]
                     self.buffer[i] = 0
                 else:
-                    self.buffer[i] -= packets_available_to_sent
+                    self.buffer[i] -= packets_available_to_send
                     break
         self.cumulative_buffer += tmp_buffer - self.buffer
         self.sent_packets = np.sum(tmp_buffer) - np.sum(self.buffer)
@@ -68,7 +68,7 @@ class Buffer:
         """
         if np.sum(self.cumulative_buffer) != 0:
             return np.sum(
-                self.cumulative_buffer * np.arange(1, self.max_packets_age + 1)
+                self.cumulative_buffer * np.arange(self.max_packets_age + 1)
             ) / np.sum(self.cumulative_buffer)
         else:
             return 0
