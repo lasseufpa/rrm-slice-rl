@@ -31,7 +31,7 @@ class UE:
         plots: bool = False,
         rng: BitGenerator = np.random.default_rng(),
         windows_size_obs: int = 1,
-        windows_size: int = 10,
+        windows_size: int = 100,
         normalize_obs: bool = False,
     ) -> None:
         self.bs_name = bs_name
@@ -62,6 +62,8 @@ class UE:
             "avg_lat",
             "pkt_loss",
             "se",
+            "long_term_pkt_thr",
+            "fifth_perc_pkt_thr",
         ]
         self.hist = {hist_label: np.array([]) for hist_label in self.hist_labels}
         self.no_windows_hist = {
@@ -163,9 +165,9 @@ class UE:
             self.se[step_number],
         ]
         normalize_factors = (
-            [100, 100, 100, 1, self.buffer_max_lat, 1, 100]
+            [100, 100, 100, 1, self.buffer_max_lat, 1, 100, 100, 100]
             if self.normalize_obs
-            else [1, 1, 1, 1, 1, 1, 1]
+            else np.ones(len(self.hist.keys()))
         )
         self.number_pkt_loss = np.append(self.number_pkt_loss, pkt_loss)
 
@@ -195,6 +197,19 @@ class UE:
                     )
                     if den != 0
                     else np.append(self.no_windows_hist[var[0]], 0)
+                )
+            elif var[0] == "long_term_pkt_thr":
+                self.no_windows_hist[var[0]] = np.append(
+                    self.no_windows_hist[var[0]],
+                    np.sum(self.no_windows_hist["pkt_thr"][-self.windows_size :])
+                    / self.no_windows_hist["pkt_thr"][-self.windows_size :].shape[0],
+                )
+            elif var[0] == "fifth_perc_pkt_thr":
+                self.no_windows_hist[var[0]] = np.append(
+                    self.no_windows_hist[var[0]],
+                    np.percentile(
+                        self.no_windows_hist["pkt_thr"][-self.windows_size :], 5
+                    ),
                 )
             else:
                 self.no_windows_hist[var[0]] = np.append(
@@ -243,6 +258,8 @@ class UE:
                 data.f.avg_lat,
                 data.f.pkt_loss,
                 data.f.se,
+                data.f.long_term_pkt_thr,
+                data.f.fifth_perc_pkt_thr,
             ]
         )
 
@@ -325,7 +342,7 @@ def main():
         trial_number=1,
         traffic_type="embb",
         traffic_throughput=50,
-        plots=True,
+        plots=False,
     )
     for i in range(2000):
         ue.step(i, 2)

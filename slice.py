@@ -75,6 +75,8 @@ class Slice:
             "avg_lat",
             "pkt_loss",
             "se",
+            "long_term_pkt_thr",
+            "fifth_perc_pkt_thr",
         ]
         hist_vars = np.array([])
         hist_nowindows_vars = np.array([])
@@ -93,30 +95,10 @@ class Slice:
             )
 
         for i, var in enumerate(self.hist.items()):
-            if var[0] == "long_term_pkt_thr":
-                self.hist[var[0]] = np.append(
-                    self.hist[var[0]],
-                    np.sum(self.hist["pkt_thr"]) / self.hist["pkt_thr"].shape,
-                )
-                self.no_windows_hist[var[0]] = np.append(
-                    self.no_windows_hist[var[0]],
-                    np.sum(self.no_windows_hist["pkt_thr"])
-                    / self.no_windows_hist["pkt_thr"].shape,
-                )
-            elif var[0] == "fifth_perc_pkt_thr":
-                self.hist[var[0]] = np.append(
-                    self.hist[var[0]],
-                    np.percentile(self.hist["pkt_thr"], 5),
-                )
-                self.no_windows_hist[var[0]] = np.append(
-                    self.no_windows_hist[var[0]],
-                    np.percentile(self.no_windows_hist["pkt_thr"], 5),
-                )
-            else:
-                self.hist[var[0]] = np.append(self.hist[var[0]], hist_vars[i])
-                self.no_windows_hist[var[0]] = np.append(
-                    self.no_windows_hist[var[0]], hist_nowindows_vars[i]
-                )
+            self.hist[var[0]] = np.append(self.hist[var[0]], hist_vars[i])
+            self.no_windows_hist[var[0]] = np.append(
+                self.no_windows_hist[var[0]], hist_nowindows_vars[i]
+            )
 
     def get_last_no_windows_hist(self) -> dict:
         """
@@ -257,7 +239,7 @@ def main():
             trial_number=1,
             traffic_type="embb",
             traffic_throughput=50,
-            plots=True,
+            plots=False,
             rng=rng,
         )
         for i in np.arange(1, number_ues + 1)
@@ -268,7 +250,7 @@ def main():
         name="slice_name",
         trial_number=1,
         ues=ues,
-        plots=True,
+        plots=False,
     )
     for i in range(max_number_steps):
         slice.step(i, max_number_steps, const_rbs)
