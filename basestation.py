@@ -379,9 +379,9 @@ class Basestation(gym.Env):
         """
 
         def valid_comb(comb):
-            divisors = [2, 5, 17]  # 3, 5, 17]
+            numbers = [0, 1, 2, 3, 6, 9, 11, 12, 15, 17]
             for value in comb:
-                if 0 in np.mod(value, divisors):
+                if value in numbers:
                     pass
                 else:
                     return False
