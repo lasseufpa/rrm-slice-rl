@@ -510,5 +510,5 @@ slice_requirements = {
 #     10,
 # )
 
-plot_reward_ws_comparison(1, ["ppo", "mt", "rr"], [50], "light", "full", 10)
+plot_reward_ws_comparison(1, ["ppo", "mt", "rr"], [10], "light", "full", 1)
 # plot_reward_obs_comparison(1, ["ppo"], 50, "light", ["full", "partial"], 10)
