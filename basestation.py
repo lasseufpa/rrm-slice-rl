@@ -364,7 +364,7 @@ class Basestation(gym.Env):
         self.traffic_types = traffics
 
     @staticmethod
-    def create_combinations(total_rbs: int, number_slices: int):
+    def create_combinations(total_rbs: int, number_slices: int, full=False):
         """
         Create the combinations of possible arrays with RBs allocation for each
         slice. For instance, let's assume 3 slices and 17 RBs available in the
@@ -378,10 +378,12 @@ class Basestation(gym.Env):
         these slices.
         """
 
-        def valid_comb(comb):
-            numbers = [0, 1, 2, 3, 6, 9, 11, 12, 15, 17]
+        def valid_comb(comb, full):
+            if full is True:
+                return True
+            divisors = [3, 5, 17]
             for value in comb:
-                if value in numbers:
+                if 0 in np.mod(value, divisors):
                     pass
                 else:
                     return False
@@ -390,7 +392,7 @@ class Basestation(gym.Env):
         combinations = []
         combs = product(range(0, total_rbs + 1), repeat=number_slices)
         for comb in combs:
-            if np.sum(comb) == total_rbs and valid_comb(comb):
+            if np.sum(comb) == total_rbs and valid_comb(comb, full):
                 combinations.append(comb)
         return np.asarray(combinations)
 

@@ -32,7 +32,9 @@ class BaselineAgent:
         self.bandwidth = bandwidth
         self.total_number_rbs = total_number_rbs
         self.packet_size = packet_size
-        self.action_space = Basestation.create_combinations(total_rbs, slices_number)
+        self.action_space = Basestation.create_combinations(
+            total_rbs, slices_number, full=True
+        )
         self.round_robin_alloc = [6, 6, 5]
 
     def max_throughput(self, obs: np.array) -> int:

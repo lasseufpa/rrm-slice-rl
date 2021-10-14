@@ -11,7 +11,7 @@ from basestation import Basestation
 train_param = {
     "steps_per_trial": 2000,
     "total_trials": 1,
-    "runs_per_agent": 10000,
+    "runs_per_agent": 100,
 }
 
 test_param = {
