@@ -217,6 +217,7 @@ for windows_size_obs in tqdm(windows_sizes, desc="Windows size", leave=False):
                         rng=rng,
                         plots=True,
                         save_hist=True,
+                        baseline=False if model in models else True,
                     )
                     obs = (
                         [env.reset(test_param["initial_trial"])]

@@ -47,6 +47,7 @@ class Basestation(gym.Env):
         ue_plots: bool = False,
         save_hist: bool = False,
         normalize_ue_obs: bool = False,
+        baseline: bool = False,
     ) -> None:
         self.bs_name = bs_name
         self.max_packets_buffer = max_packets_buffer
@@ -75,7 +76,7 @@ class Basestation(gym.Env):
 
         self.ues, self.slices = self.create_scenario()
         self.action_space_options = self.create_combinations(
-            self.total_number_rbs, self.slices.shape[0]
+            self.total_number_rbs, self.slices.shape[0], baseline
         )
         self.action_space = spaces.Discrete(self.action_space_options.shape[0])
 
