@@ -50,12 +50,12 @@ class BaselineAgent:
             if np.sum(max_pkt_throughput_avail) != 0
             else [1, 1, 1]
         )
-        return action, []
+        return np.array(action), []
 
     def round_robin(self, obs: np.array) -> int:
         self.round_robin_alloc = np.roll(self.round_robin_alloc, 1)
         action = self.round_robin_alloc / np.sum(self.round_robin_alloc)
-        return action, []
+        return np.array(action), []
 
     def proportional_fair(self, obs: np.array) -> int:
         throughputs_capacity = (
@@ -73,7 +73,7 @@ class BaselineAgent:
             if np.sum(fairness_calc) != 0
             else [1, 1, 1]
         )
-        return action, []
+        return np.array(action), []
 
     def set_env(self, _):
         pass
