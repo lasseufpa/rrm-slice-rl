@@ -45,20 +45,16 @@ class BaselineAgent:
         max_pkt_throughput_avail = np.minimum(
             throughputs_capacity, buffer_pkt_occupancies
         )
-        rbs_allocation = (
+        action = (
             (max_pkt_throughput_avail / np.sum(max_pkt_throughput_avail))
-            * self.total_rbs
             if np.sum(max_pkt_throughput_avail) != 0
-            else [6, 6, 5]
+            else [1, 1, 1]
         )
-        action = np.argmin(np.sum(np.abs(self.action_space - rbs_allocation), axis=1))
         return action, []
 
     def round_robin(self, obs: np.array) -> int:
         self.round_robin_alloc = np.roll(self.round_robin_alloc, 1)
-        action = np.argmin(
-            np.sum(np.abs(self.action_space - self.round_robin_alloc), axis=1)
-        )
+        action = self.round_robin_alloc / np.sum(self.round_robin_alloc)
         return action, []
 
     def proportional_fair(self, obs: np.array) -> int:
@@ -72,12 +68,11 @@ class BaselineAgent:
         snt_pkt_throughput = obs[[9, 18, 27]]
         snt_pkt_throughput[snt_pkt_throughput == 0] = 0.00001
         fairness_calc = max_pkt_throughput_avail / snt_pkt_throughput
-        rbs_allocation = (
+        action = (
             (self.total_rbs * fairness_calc / np.sum(fairness_calc))
             if np.sum(fairness_calc) != 0
-            else [6, 6, 5]
+            else [1, 1, 1]
         )
-        action = np.argmin(np.sum(np.abs(self.action_space - rbs_allocation), axis=1))
         return action, []
 
     def set_env(self, _):

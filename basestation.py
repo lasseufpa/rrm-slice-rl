@@ -79,7 +79,7 @@ class Basestation(gym.Env):
         self.action_space_options = self.create_combinations(
             self.total_number_rbs, self.slices.shape[0], baseline
         )
-        self.action_space = spaces.Discrete(self.action_space_options.shape[0])
+        self.action_space = spaces.Box(low=0, high=1, shape=(self.slices.shape[0],))
 
         if self.obs_space_mode == "full":
             self.observation_space = spaces.Box(
@@ -141,12 +141,16 @@ class Basestation(gym.Env):
             else [1, 1, 1, 1, 1, 1, 1, 1]
         )
 
-    def step(self, action: int):
+    def step(self, action: np.array):
         """
         Performs the resource block allocation among slices in according to the
         action received.
         """
-        action_values = self.action_space_options[action]
+        rbs_allocation = (action / np.sum(action)) * self.total_number_rbs
+        action_idx = np.argmin(
+            np.sum(np.abs(self.action_space_options - rbs_allocation), axis=1)
+        )
+        action_values = self.action_space_options[action_idx]
         for i in range(len(action_values)):
             self.slices[i].step(
                 self.step_number,
