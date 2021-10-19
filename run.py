@@ -225,6 +225,7 @@ for windows_size_obs in tqdm(windows_sizes, desc="Windows size", leave=False):
                         else env.reset(test_param["initial_trial"])
                     )
                     if model in models:
+                        agent.set_random_seed(seed)
                         env = DummyVecEnv([lambda: env])
                         env = VecNormalize(env, norm_reward=False)
                     agent.set_env(env)
