@@ -23,22 +23,22 @@ test_param = {
 
 # Create environment
 traffics = {
-    "light": np.concatenate(
-        (
-            np.repeat([10], 4),
-            np.repeat([1], 3),
-            np.repeat([5], 3),
-        ),
-        axis=None,
-    ),
-    # "moderate": np.concatenate(
+    # "light": np.concatenate(
     #     (
-    #         np.repeat([20], 4),
-    #         np.repeat([2], 3),
-    #         np.repeat([10], 3),
+    #         np.repeat([10], 4),
+    #         np.repeat([1], 3),
+    #         np.repeat([5], 3),
     #     ),
     #     axis=None,
     # ),
+    "moderate": np.concatenate(
+        (
+            np.repeat([20], 4),
+            np.repeat([2], 3),
+            np.repeat([10], 3),
+        ),
+        axis=None,
+    ),
     # "heavy": np.concatenate(
     #     (
     #         np.repeat([30], 4),
@@ -49,16 +49,16 @@ traffics = {
     # ),
 }
 slice_requirements = {
-    "light": {
-        "embb": {"throughput": 10, "latency": 20, "pkt_loss": 0.2},
-        "urllc": {"throughput": 1, "latency": 1, "pkt_loss": 0.001},
-        "be": {"long_term_pkt_thr": 5, "fifth_perc_pkt_thr": 2},
-    },
-    # "moderate": {
-    #     "embb": {"throughput": 20, "latency": 20, "pkt_loss": 0.2},
-    #     "urllc": {"throughput": 2, "latency": 1, "pkt_loss": 0.001},
-    #     "be": {"long_term_pkt_thr": 10, "fifth_perc_pkt_thr": 5},
+    # "light": {
+    #     "embb": {"throughput": 10, "latency": 20, "pkt_loss": 0.2},
+    #     "urllc": {"throughput": 1, "latency": 1, "pkt_loss": 0.001},
+    #     "be": {"long_term_pkt_thr": 5, "fifth_perc_pkt_thr": 2},
     # },
+    "moderate": {
+        "embb": {"throughput": 20, "latency": 20, "pkt_loss": 0.2},
+        "urllc": {"throughput": 2, "latency": 1, "pkt_loss": 0.001},
+        "be": {"long_term_pkt_thr": 10, "fifth_perc_pkt_thr": 5},
+    },
     # "heavy": {
     #     "embb": {"throughput": 30, "latency": 20, "pkt_loss": 0.2},
     #     "urllc": {"throughput": 3, "latency": 1, "pkt_loss": 0.001},
@@ -83,8 +83,8 @@ def create_agent(type: str, mode: str, obs_space_mode: str, windows_size_obs: in
         max_number_steps=train_param["steps_per_trial"],
         max_number_trials=train_param["total_trials"],
         traffic_types=traffic_types,
-        traffic_throughputs=traffics["light"],
-        slice_requirements=slice_requirements["light"],
+        traffic_throughputs=traffics[list(traffics.keys())[0]],
+        slice_requirements=slice_requirements[list(traffics.keys())[0]],
         obs_space_mode=obs_space_mode,
         plots=True,
     )
