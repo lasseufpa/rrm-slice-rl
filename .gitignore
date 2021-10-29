@@ -1,3 +1,9 @@
+# Stable baselines code (debug)
+stable-baselines3/
+
+# VecNormalize models
+vecnormalize_models/
+
 # Tensorboard logs
 tensorboard-logs/
 

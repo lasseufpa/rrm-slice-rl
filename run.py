@@ -1,5 +1,7 @@
+import os
+
 import numpy as np
-from stable_baselines3 import A2C, DQN, PPO
+from stable_baselines3 import A2C, DQN, PPO, SAC, TD3
 from stable_baselines3.common.env_checker import check_env
 from stable_baselines3.common.evaluation import evaluate_policy
 from stable_baselines3.common.vec_env import DummyVecEnv, VecNormalize
@@ -103,6 +105,14 @@ def create_agent(type: str, mode: str, obs_space_mode: str, windows_size_obs: in
             return DQN(
                 "MlpPolicy", env, verbose=0, tensorboard_log="./tensorboard-logs/"
             )
+        elif type == "sac":
+            return SAC(
+                "MlpPolicy", env, verbose=0, tensorboard_log="./tensorboard-logs/"
+            )
+        elif type == "td3":
+            return TD3(
+                "MlpPolicy", env, verbose=0, tensorboard_log="./tensorboard-logs/"
+            )
     elif mode == "test":
         if type == "a2c":
             return A2C.load(
@@ -122,6 +132,18 @@ def create_agent(type: str, mode: str, obs_space_mode: str, windows_size_obs: in
                 None,
                 verbose=0,
             )
+        elif type == "sac":
+            return SAC.load(
+                "./agents/sac_{}_ws{}".format(obs_space_mode, windows_size_obs),
+                None,
+                verbose=0,
+            )
+        elif type == "td3":
+            return TD3.load(
+                "./agents/td3_{}_ws{}".format(obs_space_mode, windows_size_obs),
+                None,
+                verbose=0,
+            )
         elif type == "mt":
             return BaselineAgent("mt")
         elif type == "pf":
@@ -130,13 +152,20 @@ def create_agent(type: str, mode: str, obs_space_mode: str, windows_size_obs: in
             return BaselineAgent("rr")
 
 
-models = ["ppo"]
+models = ["ppo"]  # ["ppo", "sac", "td3", "ppo"]
 traffics_list = traffics.keys()
 # obs_space_modes = ["full", "partial"]
 obs_space_modes = ["full"]
 # windows_sizes = [1, 10, 50]
 windows_sizes = [10]
 seed = 10
+
+# Removing VecNormalize models from previous simulations
+dir_vec_models = "./vecnormalize_models"
+if not os.path.exists(dir_vec_models):
+    os.makedirs(dir_vec_models)
+for f in os.listdir(dir_vec_models):
+    os.remove(os.path.join(dir_vec_models, f))
 
 # Training
 print("\n############### Training ###############")
@@ -172,13 +201,21 @@ for windows_size_obs in tqdm(windows_sizes, desc="Windows size", leave=False):
                         rng=rng,
                     )
                     env = DummyVecEnv([lambda: env])
-                    env = VecNormalize(env)
+                    dir_vec_file = dir_vec_models + "/{}_{}_ws{}".format(
+                        model, obs_space_mode, windows_size_obs
+                    )
+                    env = (
+                        VecNormalize(env)
+                        if not os.path.exists(dir_vec_file)
+                        else VecNormalize.load(dir_vec_file, env)
+                    )
                     agent.set_env(env)
                     agent.learn(
                         total_timesteps=int(
                             train_param["total_trials"] * train_param["steps_per_trial"]
                         ),
                     )
+                    env.save(dir_vec_file)
             agent.save(
                 "./agents/{}_{}_ws{}".format(model, obs_space_mode, windows_size_obs)
             )
@@ -226,8 +263,15 @@ for windows_size_obs in tqdm(windows_sizes, desc="Windows size", leave=False):
                     )
                     if model in models:
                         agent.set_random_seed(seed)
+                        dir_vec_models = "./vecnormalize_models"
+                        dir_vec_file = dir_vec_models + "/{}_{}_ws{}".format(
+                            model, obs_space_mode, windows_size_obs
+                        )
                         env = DummyVecEnv([lambda: env])
-                        env = VecNormalize(env, norm_reward=False)
+                        env = VecNormalize.load(dir_vec_file, env)
+                        env.training = False
+                        env.norm_reward = False
+
                     agent.set_env(env)
                     for _ in tqdm(
                         range(
