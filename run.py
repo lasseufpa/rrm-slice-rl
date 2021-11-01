@@ -12,14 +12,14 @@ from basestation import Basestation
 
 train_param = {
     "steps_per_trial": 2000,
-    "total_trials": 1,
-    "runs_per_agent": 100,
+    "total_trials": 49,
+    "runs_per_agent": 2,
 }
 
 test_param = {
     "steps_per_trial": 2000,
-    "total_trials": 1,
-    "initial_trial": 1,
+    "total_trials": 50,
+    "initial_trial": 50,
     "runs_per_agent": 1,
 }
 
@@ -152,7 +152,7 @@ def create_agent(type: str, mode: str, obs_space_mode: str, windows_size_obs: in
             return BaselineAgent("rr")
 
 
-models = ["ppo"]  # ["ppo", "sac", "td3", "ppo"]
+models = ["sac"]  # ["ppo", "sac", "td3", "ppo"]
 traffics_list = traffics.keys()
 # obs_space_modes = ["full", "partial"]
 obs_space_modes = ["full"]
@@ -191,8 +191,8 @@ for windows_size_obs in tqdm(windows_sizes, desc="Windows size", leave=False):
                             traffic_behavior,
                             run_number,
                         ),
-                        max_number_steps=test_param["steps_per_trial"],
-                        max_number_trials=test_param["total_trials"],
+                        max_number_steps=train_param["steps_per_trial"],
+                        max_number_trials=train_param["total_trials"],
                         traffic_types=traffic_types,
                         traffic_throughputs=traffics[traffic_behavior],
                         slice_requirements=slice_requirements[traffic_behavior],
@@ -275,7 +275,7 @@ for windows_size_obs in tqdm(windows_sizes, desc="Windows size", leave=False):
                     agent.set_env(env)
                     for _ in tqdm(
                         range(
-                            test_param["total_trials"] - test_param["initial_trial"] + 1
+                            test_param["total_trials"] + 1 - test_param["initial_trial"]
                         ),
                         leave=False,
                         desc="Trials",
