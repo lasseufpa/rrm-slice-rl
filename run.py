@@ -33,14 +33,14 @@ traffics = {
         ),
         axis=None,
     ),
-    "moderate": np.concatenate(
-        (
-            np.repeat([20], 4),
-            np.repeat([2], 3),
-            np.repeat([10], 3),
-        ),
-        axis=None,
-    ),
+    # "moderate": np.concatenate(
+    #     (
+    #         np.repeat([20], 4),
+    #         np.repeat([2], 3),
+    #         np.repeat([10], 3),
+    #     ),
+    #     axis=None,
+    # ),
     # "heavy": np.concatenate(
     #     (
     #         np.repeat([30], 4),
@@ -56,11 +56,11 @@ slice_requirements = {
         "urllc": {"throughput": 1, "latency": 1, "pkt_loss": 0.001},
         "be": {"long_term_pkt_thr": 5, "fifth_perc_pkt_thr": 2},
     },
-    "moderate": {
-        "embb": {"throughput": 20, "latency": 20, "pkt_loss": 0.2},
-        "urllc": {"throughput": 2, "latency": 1, "pkt_loss": 0.001},
-        "be": {"long_term_pkt_thr": 10, "fifth_perc_pkt_thr": 5},
-    },
+    # "moderate": {
+    #     "embb": {"throughput": 20, "latency": 20, "pkt_loss": 0.2},
+    #     "urllc": {"throughput": 2, "latency": 1, "pkt_loss": 0.001},
+    #     "be": {"long_term_pkt_thr": 10, "fifth_perc_pkt_thr": 5},
+    # },
     # "heavy": {
     #     "embb": {"throughput": 30, "latency": 20, "pkt_loss": 0.2},
     #     "urllc": {"throughput": 3, "latency": 1, "pkt_loss": 0.001},
@@ -205,9 +205,9 @@ for windows_size_obs in tqdm(windows_sizes, desc="Windows size", leave=False):
                         model, obs_space_mode, windows_size_obs
                     )
                     env = (
-                        VecNormalize(env)
-                        if not os.path.exists(dir_vec_file)
-                        else VecNormalize.load(dir_vec_file, env)
+                        VecNormalize.load(dir_vec_file, env)
+                        if os.path.exists(dir_vec_file)
+                        else VecNormalize(env)
                     )
                     agent.set_env(env)
                     agent.learn(
