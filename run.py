@@ -14,7 +14,7 @@ from callbacks import ProgressBarManager
 train_param = {
     "steps_per_trial": 2000,
     "total_trials": 49,
-    "runs_per_agent": 10,
+    "runs_per_agent": 50,
 }
 
 test_param = {
@@ -168,6 +168,7 @@ for windows_size_obs in tqdm(windows_sizes, desc="Windows size", leave=False):
             agent.set_random_seed(seed)
             with ProgressBarManager(
                 int(train_param["total_trials"] * train_param["steps_per_trial"])
+                * train_param["runs_per_agent"]
             ) as callback:
                 agent.learn(
                     total_timesteps=int(
