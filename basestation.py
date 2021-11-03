@@ -30,7 +30,7 @@ class Basestation(gym.Env):
         bs_name: str,
         traffic_types: np.array,
         traffic_throughputs: np.array,
-        slice_requirements: dict,
+        slice_requirements_traffics: dict,
         max_packets_buffer: int = 1024,
         buffer_max_lat: int = 100,
         bandwidth: int = 100000000,
@@ -41,6 +41,7 @@ class Basestation(gym.Env):
         max_number_steps: int = 2000,
         max_number_trials: int = 50,
         windows_size_obs: int = 100,
+        steps_update_traffics: int = 200,
         obs_space_mode: str = "full",
         rng: BitGenerator = np.random.default_rng(),
         plots: bool = False,
@@ -65,8 +66,12 @@ class Basestation(gym.Env):
         self.trial_number = 1
         self.reward = 0
         self.traffic_throughputs = traffic_throughputs
-        self.slice_requirements = slice_requirements
+        self.slice_requirements_traffics = slice_requirements_traffics
+        self.slice_requirements = self.slice_requirements_traffics[
+            list(self.slice_requirements_traffics.keys())[0]
+        ]
         self.windows_size_obs = windows_size_obs
+        self.steps_update_traffics = steps_update_traffics
         self.obs_space_mode = obs_space_mode
         self.plots = plots
         self.slice_plots = slice_plots
@@ -173,6 +178,8 @@ class Basestation(gym.Env):
         if (self.step_number == self.max_number_steps - 1) and self.save_hist_bool:
             self.save_hist()
         self.step_number += 1
+        if self.step_number % self.steps_update_traffics == 0:
+            self.update_ues_traffic()
         obs_sample = self.observation_space.sample()
         return (
             obs_sample,  # self.get_obs_space(),
@@ -225,7 +232,9 @@ class Basestation(gym.Env):
                     id=i,
                     trial_number=self.trial_number,
                     traffic_type=self.traffic_types[i - 1],
-                    traffic_throughput=self.traffic_throughputs[i - 1],
+                    traffic_throughput=self.traffic_throughputs[
+                        list(self.traffic_throughputs.keys())[0]
+                    ][self.traffic_types[i - 1]],
                     plots=self.ue_plots,
                     rng=self.rng,
                     windows_size_obs=self.windows_size_obs,
@@ -423,8 +432,28 @@ class Basestation(gym.Env):
 
         return reward
 
-    def update_ues_traffic(self, traffics: dict) -> None:
-        self.traffic_types = traffics
+    def update_ues_traffic(self) -> None:
+        self.slice_requirements = {}
+        for slice in self.slices:
+            traffic_level = self.rng.integers(len(self.traffic_throughputs))
+            is_be = slice.name == "be"
+            be_prob = self.rng.random()
+            self.slice_requirements[slice.name] = (
+                {"long_term_pkt_thr": 0, "fifth_perc_pkt_thr": 0}
+                if is_be and be_prob > 0.5
+                else self.slice_requirements_traffics[
+                    list(self.traffic_throughputs.keys())[traffic_level]
+                ][slice.name]
+            )
+
+            for ue in slice.ues:
+                ue.traffic_throughput = (
+                    -1
+                    if is_be and be_prob > 0.5
+                    else self.traffic_throughputs[
+                        list(self.traffic_throughputs.keys())[traffic_level]
+                    ][ue.traffic_type]
+                )
 
     @staticmethod
     def create_combinations(total_rbs: int, number_slices: int, full=False):
@@ -617,32 +646,18 @@ def main():
         axis=None,
     )
     traffic_throughputs = {
-        "light": np.concatenate(
-            (
-                np.repeat([10], 4),
-                np.repeat([1], 3),
-                np.repeat([5], 3),
-            ),
-            axis=None,
-        ),
-        "moderate": np.concatenate(
-            (
-                np.repeat([20], 4),
-                np.repeat([2], 3),
-                np.repeat([10], 3),
-            ),
-            axis=None,
-        ),
-        "heavy": np.concatenate(
-            (
-                np.repeat([30], 4),
-                np.repeat([3], 3),
-                np.repeat([15], 3),
-            ),
-            axis=None,
-        ),
+        "light": {
+            "embb": 15,
+            "urllc": 1,
+            "be": 5,
+        },
+        "moderate": {
+            "embb": 25,
+            "urllc": 5,
+            "be": 10,
+        },
     }
-    slice_requirements = {
+    slice_requirements_traffics = {
         "light": {
             "embb": {"throughput": 10, "latency": 20, "pkt_loss": 0.2},
             "urllc": {"throughput": 1, "latency": 1, "pkt_loss": 0.001},
@@ -650,13 +665,8 @@ def main():
         },
         "moderate": {
             "embb": {"throughput": 20, "latency": 20, "pkt_loss": 0.2},
-            "urllc": {"throughput": 2, "latency": 1, "pkt_loss": 0.001},
+            "urllc": {"throughput": 5, "latency": 1, "pkt_loss": 0.001},
             "be": {"long_term_pkt_thr": 10, "fifth_perc_pkt_thr": 5},
-        },
-        "heavy": {
-            "embb": {"throughput": 30, "latency": 20, "pkt_loss": 0.2},
-            "urllc": {"throughput": 3, "latency": 1, "pkt_loss": 0.001},
-            "be": {"long_term_pkt_thr": 15, "fifth_perc_pkt_thr": 5},
         },
     }
     trials = 2
@@ -666,7 +676,7 @@ def main():
         max_number_trials=trials,
         traffic_types=traffic_types,
         traffic_throughputs=traffic_throughputs,
-        slice_requirements=slice_requirements,
+        slice_requirements_traffics=slice_requirements_traffics,
         obs_space_mode="partial",
         plots=True,
         save_hist=True,

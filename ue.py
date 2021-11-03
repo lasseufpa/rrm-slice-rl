@@ -96,7 +96,7 @@ class UE:
             )
 
         def traffic_be():
-            if self.rng.random() >= 0.5:
+            if self.traffic_throughput != -1:
                 return np.floor(
                     np.abs(
                         self.rng.normal(
