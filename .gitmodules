@@ -1,4 +1,0 @@
-[submodule "stable-baselines3"]
-	path = stable-baselines3
-	url = git@github.com:DLR-RM/stable-baselines3.git
-	branch = fix/set-vec-env
