@@ -24,50 +24,6 @@ test_param = {
 }
 
 # Create environment
-traffics = {
-    "light": np.concatenate(
-        (
-            np.repeat([10], 4),
-            np.repeat([1], 3),
-            np.repeat([5], 3),
-        ),
-        axis=None,
-    ),
-    # "moderate": np.concatenate(
-    #     (
-    #         np.repeat([20], 4),
-    #         np.repeat([2], 3),
-    #         np.repeat([10], 3),
-    #     ),
-    #     axis=None,
-    # ),
-    # "heavy": np.concatenate(
-    #     (
-    #         np.repeat([30], 4),
-    #         np.repeat([3], 3),
-    #         np.repeat([15], 3),
-    #     ),
-    #     axis=None,
-    # ),
-}
-slice_requirements = {
-    "light": {
-        "embb": {"throughput": 10, "latency": 20, "pkt_loss": 0.2},
-        "urllc": {"throughput": 1, "latency": 1, "pkt_loss": 0.001},
-        "be": {"long_term_pkt_thr": 5, "fifth_perc_pkt_thr": 2},
-    },
-    # "moderate": {
-    #     "embb": {"throughput": 20, "latency": 20, "pkt_loss": 0.2},
-    #     "urllc": {"throughput": 2, "latency": 1, "pkt_loss": 0.001},
-    #     "be": {"long_term_pkt_thr": 10, "fifth_perc_pkt_thr": 5},
-    # },
-    # "heavy": {
-    #     "embb": {"throughput": 30, "latency": 20, "pkt_loss": 0.2},
-    #     "urllc": {"throughput": 3, "latency": 1, "pkt_loss": 0.001},
-    #     "be": {"long_term_pkt_thr": 15, "fifth_perc_pkt_thr": 5},
-    # },
-}
-
 traffic_types = np.concatenate(
     (
         np.repeat(["embb"], 4),
@@ -76,22 +32,36 @@ traffic_types = np.concatenate(
     ),
     axis=None,
 )
+traffic_throughputs = {
+    "light": {
+        "embb": 15,
+        "urllc": 1,
+        "be": 5,
+    },
+    # "moderate": {
+    #     "embb": 25,
+    #     "urllc": 5,
+    #     "be": 10,
+    # },
+}
+slice_requirements_traffics = {
+    "light": {
+        "embb": {"throughput": 10, "latency": 20, "pkt_loss": 0.2},
+        "urllc": {"throughput": 1, "latency": 1, "pkt_loss": 0.001},
+        "be": {"long_term_pkt_thr": 5, "fifth_perc_pkt_thr": 2},
+    },
+    # "moderate": {
+    #     "embb": {"throughput": 20, "latency": 20, "pkt_loss": 0.2},
+    #     "urllc": {"throughput": 5, "latency": 1, "pkt_loss": 0.001},
+    #     "be": {"long_term_pkt_thr": 10, "fifth_perc_pkt_thr": 5},
+    # },
+}
 
 
 # Instantiate the agent
-def create_agent(type: str, mode: str, obs_space_mode: str, windows_size_obs: int):
-    env = Basestation(
-        bs_name="dummy",
-        max_number_steps=train_param["steps_per_trial"],
-        max_number_trials=train_param["total_trials"],
-        traffic_types=traffic_types,
-        traffic_throughputs=traffics[list(traffics.keys())[0]],
-        slice_requirements=slice_requirements[list(traffics.keys())[0]],
-        obs_space_mode=obs_space_mode,
-        plots=True,
-    )
-    env = DummyVecEnv([lambda: env])
-    env = VecNormalize(env)
+def create_agent(
+    type: str, env: VecNormalize, mode: str, obs_space_mode: str, windows_size_obs: int
+):
     if mode == "train":
         if type == "a2c":
             return A2C(
@@ -99,7 +69,7 @@ def create_agent(type: str, mode: str, obs_space_mode: str, windows_size_obs: in
             )
         elif type == "ppo":
             return PPO(
-                "MlpPolicy", env, verbose=0, tensorboard_log="./tensorboard-logs/"
+                "MlpPolicy", env, verbose=1, tensorboard_log="./tensorboard-logs/"
             )
         elif type == "dqn":
             return DQN(
@@ -152,8 +122,8 @@ def create_agent(type: str, mode: str, obs_space_mode: str, windows_size_obs: in
             return BaselineAgent("rr")
 
 
-models = ["sac"]  # ["ppo", "sac", "td3", "ppo"]
-traffics_list = traffics.keys()
+models = ["ppo"]  # ["ppo", "sac", "td3", "ppo"]
+traffics_list = traffic_throughputs.keys()
 # obs_space_modes = ["full", "partial"]
 obs_space_modes = ["full"]
 # windows_sizes = [1, 10, 50]
@@ -172,50 +142,35 @@ print("\n############### Training ###############")
 for windows_size_obs in tqdm(windows_sizes, desc="Windows size", leave=False):
     for obs_space_mode in tqdm(obs_space_modes, desc="Obs. Space mode", leave=False):
         for model in tqdm(models, desc="Models", leave=False):
-            agent = create_agent(model, "train", obs_space_mode, windows_size_obs)
+            rng = np.random.default_rng(seed) if seed != -1 else np.random.default_rng()
+            env = Basestation(
+                bs_name="train/{}/ws_{}/{}/".format(
+                    model,
+                    windows_size_obs,
+                    obs_space_mode,
+                ),
+                max_number_steps=train_param["steps_per_trial"],
+                max_number_trials=train_param["total_trials"],
+                traffic_types=traffic_types,
+                traffic_throughputs=traffic_throughputs,
+                slice_requirements_traffics=slice_requirements_traffics,
+                windows_size_obs=windows_size_obs,
+                obs_space_mode=obs_space_mode,
+                rng=rng,
+            )
+            env = DummyVecEnv([lambda: env])
+            dir_vec_file = dir_vec_models + "/{}_{}_ws{}.pkl".format(
+                model, obs_space_mode, windows_size_obs
+            )
+            env = VecNormalize(env)
+            agent = create_agent(model, env, "train", obs_space_mode, windows_size_obs)
             agent.set_random_seed(seed)
-            for traffic_behavior in tqdm(traffics_list, desc="Traffics", leave=False):
-                for run_number in tqdm(
-                    range(1, train_param["runs_per_agent"] + 1), desc="Run", leave=False
-                ):
-                    rng = (
-                        np.random.default_rng(seed)
-                        if seed != -1
-                        else np.random.default_rng()
-                    )
-                    env = Basestation(
-                        bs_name="train/{}/ws_{}/{}/{}/run{}".format(
-                            model,
-                            windows_size_obs,
-                            obs_space_mode,
-                            traffic_behavior,
-                            run_number,
-                        ),
-                        max_number_steps=train_param["steps_per_trial"],
-                        max_number_trials=train_param["total_trials"],
-                        traffic_types=traffic_types,
-                        traffic_throughputs=traffics[traffic_behavior],
-                        slice_requirements=slice_requirements[traffic_behavior],
-                        windows_size_obs=windows_size_obs,
-                        obs_space_mode=obs_space_mode,
-                        rng=rng,
-                    )
-                    env = DummyVecEnv([lambda: env])
-                    dir_vec_file = dir_vec_models + "/{}_{}_ws{}".format(
-                        model, obs_space_mode, windows_size_obs
-                    )
-                    env = (
-                        VecNormalize.load(dir_vec_file, env)
-                        if os.path.exists(dir_vec_file)
-                        else VecNormalize(env)
-                    )
-                    agent.set_env(env)
-                    agent.learn(
-                        total_timesteps=int(
-                            train_param["total_trials"] * train_param["steps_per_trial"]
-                        ),
-                    )
-                    env.save(dir_vec_file)
+            agent.learn(
+                total_timesteps=int(
+                    train_param["total_trials"] * train_param["steps_per_trial"]
+                ),
+            )
+            env.save(dir_vec_file)
             agent.save(
                 "./agents/{}_{}_ws{}".format(model, obs_space_mode, windows_size_obs)
             )
@@ -226,69 +181,56 @@ models_test = np.append(models, ["mt", "rr", "pf"])
 for windows_size_obs in tqdm(windows_sizes, desc="Windows size", leave=False):
     for obs_space_mode in tqdm(obs_space_modes, desc="Obs. Space mode", leave=False):
         for model in tqdm(models_test, desc="Models", leave=False):
-            agent = create_agent(model, "test", obs_space_mode, windows_size_obs)
-            for traffic_behavior in tqdm(traffics_list, desc="Traffics", leave=False):
-                for run_number in tqdm(
-                    range(1, test_param["runs_per_agent"] + 1), desc="Run", leave=False
-                ):
-                    rng = (
-                        np.random.default_rng(seed)
-                        if seed != -1
-                        else np.random.default_rng()
-                    )
-                    env = Basestation(
-                        bs_name="test/{}/ws_{}/{}/{}/run{}".format(
-                            model,
-                            windows_size_obs,
-                            obs_space_mode,
-                            traffic_behavior,
-                            run_number,
-                        ),
-                        max_number_steps=test_param["steps_per_trial"],
-                        max_number_trials=test_param["total_trials"],
-                        traffic_types=traffic_types,
-                        traffic_throughputs=traffics[traffic_behavior],
-                        slice_requirements=slice_requirements[traffic_behavior],
-                        windows_size_obs=windows_size_obs,
-                        obs_space_mode=obs_space_mode,
-                        rng=rng,
-                        plots=True,
-                        save_hist=True,
-                        baseline=False if model in models else True,
-                    )
-                    obs = (
-                        [env.reset(test_param["initial_trial"])]
-                        if model in models
-                        else env.reset(test_param["initial_trial"])
-                    )
-                    if model in models:
-                        agent.set_random_seed(seed)
-                        dir_vec_models = "./vecnormalize_models"
-                        dir_vec_file = dir_vec_models + "/{}_{}_ws{}".format(
-                            model, obs_space_mode, windows_size_obs
-                        )
-                        env = DummyVecEnv([lambda: env])
-                        env = VecNormalize.load(dir_vec_file, env)
-                        env.training = False
-                        env.norm_reward = False
+            rng = np.random.default_rng(seed) if seed != -1 else np.random.default_rng()
+            env = Basestation(
+                bs_name="test/{}/ws_{}/{}/".format(
+                    model,
+                    windows_size_obs,
+                    obs_space_mode,
+                ),
+                max_number_steps=test_param["steps_per_trial"],
+                max_number_trials=test_param["total_trials"],
+                traffic_types=traffic_types,
+                traffic_throughputs=traffic_throughputs,
+                slice_requirements_traffics=slice_requirements_traffics,
+                windows_size_obs=windows_size_obs,
+                obs_space_mode=obs_space_mode,
+                rng=rng,
+                plots=True,
+                save_hist=True,
+                baseline=False if model in models else True,
+            )
+            obs = (
+                [env.reset(test_param["initial_trial"])]
+                if model in models
+                else env.reset(test_param["initial_trial"])
+            )
 
-                    agent.set_env(env)
-                    for _ in tqdm(
-                        range(
-                            test_param["total_trials"] + 1 - test_param["initial_trial"]
-                        ),
-                        leave=False,
-                        desc="Trials",
-                    ):
-                        for _ in tqdm(
-                            range(test_param["steps_per_trial"]),
-                            leave=False,
-                            desc="Steps",
-                        ):
-                            action, _states = (
-                                agent.predict(obs, deterministic=True)
-                                if model in models
-                                else agent.predict(obs)
-                            )
-                            obs, rewards, dones, info = env.step(action)
-                        env.reset()
+            if model in models:
+                dir_vec_models = "./vecnormalize_models"
+                dir_vec_file = dir_vec_models + "/{}_{}_ws{}.pkl".format(
+                    model, obs_space_mode, windows_size_obs
+                )
+                env = DummyVecEnv([lambda: env])
+                env = VecNormalize.load(dir_vec_file, env)
+                env.training = False
+                env.norm_reward = False
+            agent = create_agent(model, env, "test", obs_space_mode, windows_size_obs)
+            agent.set_random_seed(seed)
+            for _ in tqdm(
+                range(test_param["total_trials"] + 1 - test_param["initial_trial"]),
+                leave=False,
+                desc="Trials",
+            ):
+                for _ in tqdm(
+                    range(test_param["steps_per_trial"]),
+                    leave=False,
+                    desc="Steps",
+                ):
+                    action, _states = (
+                        agent.predict(obs, deterministic=True)
+                        if model in models
+                        else agent.predict(obs)
+                    )
+                    obs, rewards, dones, info = env.step(action)
+                env.reset()

@@ -81,5 +81,8 @@ class BaselineAgent:
     def main(self):
         pass
 
+    def set_random_seed(self, seed):
+        pass
+
     if __name__ == "__main__":
         main()
