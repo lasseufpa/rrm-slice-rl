@@ -9,6 +9,7 @@ from tqdm import tqdm
 
 from baselines import BaselineAgent
 from basestation import Basestation
+from callbacks import ProgressBarManager
 
 train_param = {
     "steps_per_trial": 2000,
@@ -69,7 +70,7 @@ def create_agent(
             )
         elif type == "ppo":
             return PPO(
-                "MlpPolicy", env, verbose=1, tensorboard_log="./tensorboard-logs/"
+                "MlpPolicy", env, verbose=0, tensorboard_log="./tensorboard-logs/"
             )
         elif type == "dqn":
             return DQN(
@@ -165,11 +166,15 @@ for windows_size_obs in tqdm(windows_sizes, desc="Windows size", leave=False):
             env = VecNormalize(env)
             agent = create_agent(model, env, "train", obs_space_mode, windows_size_obs)
             agent.set_random_seed(seed)
-            agent.learn(
-                total_timesteps=int(
-                    train_param["total_trials"] * train_param["steps_per_trial"]
-                ),
-            )
+            with ProgressBarManager(
+                int(train_param["total_trials"] * train_param["steps_per_trial"])
+            ) as callback:
+                agent.learn(
+                    total_timesteps=int(
+                        train_param["total_trials"] * train_param["steps_per_trial"]
+                    ),
+                    callback=callback,
+                )
             env.save(dir_vec_file)
             agent.save(
                 "./agents/{}_{}_ws{}".format(model, obs_space_mode, windows_size_obs)
