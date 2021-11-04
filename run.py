@@ -15,7 +15,7 @@ from callbacks import ProgressBarManager
 train_param = {
     "steps_per_trial": 2000,
     "total_trials": 49,
-    "runs_per_agent": 50,
+    "runs_per_agent": 10,
 }
 
 test_param = {
@@ -59,7 +59,7 @@ slice_requirements_traffics = {
     # },
 }
 
-models = ["sac"]  # ["ppo", "sac", "td3", "ppo"]
+models = ["sac", "td3"]  # ["ppo", "sac", "td3", "ppo"]
 traffics_list = traffic_throughputs.keys()
 # obs_space_modes = ["full", "partial"]
 obs_space_modes = ["full"]
@@ -70,7 +70,7 @@ model_save_freq = int(
     train_param["total_trials"]
     * train_param["steps_per_trial"]
     * train_param["runs_per_agent"]
-    / 100
+    / 10
 )
 n_eval_episodes = 5  # default is 5
 eval_freq = 10000  # default is 10000
@@ -87,7 +87,10 @@ def create_agent(
             )
         elif type == "ppo":
             return PPO(
-                "MlpPolicy", env, verbose=0, tensorboard_log="./tensorboard-logs/"
+                "MlpPolicy",
+                env,
+                verbose=0,
+                tensorboard_log="./tensorboard-logs/",
             )
         elif type == "dqn":
             return DQN(
@@ -95,11 +98,19 @@ def create_agent(
             )
         elif type == "sac":
             return SAC(
-                "MlpPolicy", env, verbose=0, tensorboard_log="./tensorboard-logs/"
+                "MlpPolicy",
+                env,
+                verbose=0,
+                tensorboard_log="./tensorboard-logs/",
+                policy_kwargs=dict(net_arch=[400, 300]),
             )
         elif type == "td3":
             return TD3(
-                "MlpPolicy", env, verbose=0, tensorboard_log="./tensorboard-logs/"
+                "MlpPolicy",
+                env,
+                verbose=0,
+                tensorboard_log="./tensorboard-logs/",
+                policy_kwargs=dict(net_arch=[400, 300]),
             )
     elif mode == "test":
         if type == "a2c":
