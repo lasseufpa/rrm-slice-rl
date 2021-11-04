@@ -454,7 +454,7 @@ def plot_cum_reward_ws_comparison(
     x_label = "Time (ms)"
 
     agents_names_colors = {
-        "a2c": ("A2C", "#003f5c"),
+        "sac": ("SAC", "#003f5c"),
         "ppo": ("PPO", "#444e86"),
         "dqn": ("DQN", "#955196"),
         "rr": ("RR", "#dd5182"),
@@ -566,5 +566,5 @@ slice_requirements = {
 # )
 
 # plot_reward_ws_comparison(50, ["rr", "mt", "ppo"], [10], "full")
-plot_cum_reward_ws_comparison(50, ["rr", "mt", "ppo"], [10], "full")
+plot_cum_reward_ws_comparison(50, ["rr", "mt", "sac"], [10], "full")
 # plot_reward_obs_comparison(1, ["ppo"], 50, "light", ["full", "partial"], 10)
