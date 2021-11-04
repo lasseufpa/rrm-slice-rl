@@ -1,3 +1,6 @@
+# Evaluations from EvalCallback
+evaluations/
+
 # Stable baselines code (debug)
 stable-baselines3/
 

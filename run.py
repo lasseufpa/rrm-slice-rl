@@ -2,6 +2,7 @@ import os
 
 import numpy as np
 from stable_baselines3 import A2C, DQN, PPO, SAC, TD3
+from stable_baselines3.common.callbacks import CheckpointCallback, EvalCallback
 from stable_baselines3.common.env_checker import check_env
 from stable_baselines3.common.evaluation import evaluate_policy
 from stable_baselines3.common.vec_env import DummyVecEnv, VecNormalize
@@ -57,6 +58,22 @@ slice_requirements_traffics = {
     #     "be": {"long_term_pkt_thr": 10, "fifth_perc_pkt_thr": 5},
     # },
 }
+
+models = ["sac"]  # ["ppo", "sac", "td3", "ppo"]
+traffics_list = traffic_throughputs.keys()
+# obs_space_modes = ["full", "partial"]
+obs_space_modes = ["full"]
+# windows_sizes = [1, 10, 50]
+windows_sizes = [10]
+seed = 10
+model_save_freq = int(
+    train_param["total_trials"]
+    * train_param["steps_per_trial"]
+    * train_param["runs_per_agent"]
+    / 100
+)
+n_eval_episodes = 5  # default is 5
+eval_freq = 10000  # default is 10000
 
 
 # Instantiate the agent
@@ -123,14 +140,6 @@ def create_agent(
             return BaselineAgent("rr")
 
 
-models = ["ppo"]  # ["ppo", "sac", "td3", "ppo"]
-traffics_list = traffic_throughputs.keys()
-# obs_space_modes = ["full", "partial"]
-obs_space_modes = ["full"]
-# windows_sizes = [1, 10, 50]
-windows_sizes = [10]
-seed = 10
-
 # Removing VecNormalize models from previous simulations
 dir_vec_models = "./vecnormalize_models"
 if not os.path.exists(dir_vec_models):
@@ -166,17 +175,42 @@ for windows_size_obs in tqdm(windows_sizes, desc="Windows size", leave=False):
             env = VecNormalize(env)
             agent = create_agent(model, env, "train", obs_space_mode, windows_size_obs)
             agent.set_random_seed(seed)
+            callback_checkpoint = CheckpointCallback(
+                save_freq=model_save_freq,
+                save_path="./agents/",
+                name_prefix="{}_{}_ws{}".format(
+                    model, obs_space_mode, windows_size_obs
+                ),
+            )
+            callback_evaluation = EvalCallback(
+                eval_env=env,
+                log_path="./evaluations/",
+                best_model_save_path="./agents/best_{}_{}_ws{}/".format(
+                    model, obs_space_mode, windows_size_obs
+                ),
+                n_eval_episodes=n_eval_episodes,
+                eval_freq=eval_freq,
+                verbose=False,
+                warn=False,
+            )
             with ProgressBarManager(
-                int(train_param["total_trials"] * train_param["steps_per_trial"])
-                * train_param["runs_per_agent"]
-            ) as callback:
+                int(
+                    train_param["total_trials"]
+                    * train_param["steps_per_trial"]
+                    * train_param["runs_per_agent"]
+                )
+            ) as callback_progress_bar:
                 agent.learn(
                     total_timesteps=int(
                         train_param["total_trials"]
                         * train_param["steps_per_trial"]
                         * train_param["runs_per_agent"]
                     ),
-                    callback=callback,
+                    callback=[
+                        callback_progress_bar,
+                        callback_checkpoint,
+                        callback_evaluation,
+                    ],
                 )
             env.save(dir_vec_file)
             agent.save(
