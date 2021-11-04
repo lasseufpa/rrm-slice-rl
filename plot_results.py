@@ -54,19 +54,15 @@ def plot_agents_comparison(
         for slice in slices.keys():
             for agent in agents:
                 if attribute in slice_requirements[traffic][slice].keys():
-                    hist = np.zeros((runs, steps_number))
-                    for run_number in range(runs):
-                        hist[run_number, :] = Slice.read_hist(
-                            "test/{}/ws_{}/{}/{}/run{}".format(
-                                agent,
-                                windows_size_obs,
-                                obs_space,
-                                traffic,
-                                run_number + 1,
-                            ),
-                            trial_number,
-                            slices[slice],
-                        )[data_index[attribute][0]]
+                    hist = Slice.read_hist(
+                        "test/{}/ws_{}/{}/".format(
+                            agent,
+                            windows_size_obs,
+                            obs_space,
+                        ),
+                        trial_number,
+                        slices[slice],
+                    )[data_index[attribute][0]]
                     hist = np.mean(hist, axis=0)
                     hist = (
                         Basestation.packets_to_mbps(8192 * 8, hist)
@@ -314,10 +310,7 @@ def plot_reward_ws_comparison(
     trial_number: int,
     agents: list,
     windows_sizes: list,
-    traffic: str,
     obs_space: str,
-    runs: int,
-    steps_number: int = 2000,
 ) -> None:
     x_label = "Time (ms)"
 
@@ -347,19 +340,14 @@ def plot_reward_ws_comparison(
         plt.grid()
         for windows_size_obs in windows_sizes:
             for agent in agents:
-                hist = np.zeros((runs, steps_number))
-                for run_number in range(runs):
-                    hist[run_number, :] = Basestation.read_hist(
-                        "test/{}/ws_{}/{}/{}/run{}".format(
-                            agent,
-                            windows_size_obs,
-                            obs_space,
-                            traffic,
-                            run_number + 1,
-                        ),
-                        trial_number,
-                    )[data_index[attribute]]
-                hist = np.mean(hist, axis=0)
+                hist = Basestation.read_hist(
+                    "test/{}/ws_{}/{}/".format(
+                        agent,
+                        windows_size_obs,
+                        obs_space,
+                    ),
+                    trial_number,
+                )[data_index[attribute]]
                 plt.plot(
                     range(0, len(hist)),
                     hist,
@@ -374,7 +362,7 @@ def plot_reward_ws_comparison(
         plt.legend(fontsize=12)
         os.makedirs("./results", exist_ok=True)
         fig.savefig(
-            "./results/agents_ws_comp_{}_{}.pdf".format(traffic, obs_space),
+            "./results/agents_ws_comp_{}.pdf".format(obs_space),
             # bbox_inches="tight",
             pad_inches=0,
             format="pdf",
@@ -457,6 +445,73 @@ def plot_reward_obs_comparison(
         plt.close()
 
 
+def plot_cum_reward_ws_comparison(
+    trial_number: int,
+    agents: list,
+    windows_sizes: list,
+    obs_space: str,
+) -> None:
+    x_label = "Time (ms)"
+
+    agents_names_colors = {
+        "a2c": ("A2C", "#003f5c"),
+        "ppo": ("PPO", "#444e86"),
+        "dqn": ("DQN", "#955196"),
+        "rr": ("RR", "#dd5182"),
+        "pf": ("PF", "#ff6e54"),
+        "mt": ("MT", "#ffa600"),
+    }
+    ws_markers = {
+        1: "*",
+        10: "o",
+        50: "p",
+        100: "d",
+    }
+    data_index = {
+        "reward": 1,
+    }
+
+    for attribute in data_index.keys():
+        w, h = plt.figaspect(0.6)
+        fig = plt.figure(figsize=(w, h))
+        plt.xlabel(x_label, fontsize=14)
+        plt.ylabel("Reward", fontsize=14)
+        plt.grid()
+        for windows_size_obs in windows_sizes:
+            for agent in agents:
+                hist = Basestation.read_hist(
+                    "test/{}/ws_{}/{}/".format(
+                        agent,
+                        windows_size_obs,
+                        obs_space,
+                    ),
+                    trial_number,
+                )[data_index[attribute]]
+                hist = np.cumsum(hist)
+                plt.plot(
+                    range(0, len(hist)),
+                    hist,
+                    label="{}, $W_s$={}".format(
+                        agents_names_colors[agent][0], windows_size_obs
+                    ),
+                    marker=ws_markers[windows_size_obs],
+                    color=agents_names_colors[agent][1],
+                    markevery=50,
+                )
+        fig.tight_layout()
+        plt.legend(fontsize=12)
+        os.makedirs("./results", exist_ok=True)
+        fig.savefig(
+            "./results/agents_ws_comp_cumm_{}.pdf".format(obs_space),
+            # bbox_inches="tight",
+            pad_inches=0,
+            format="pdf",
+            dpi=1000,
+        )
+        # plt.show()
+        plt.close()
+
+
 trial_number = 1
 agents = ["ppo", "rr", "mt"]
 windows_sizes = 1
@@ -510,5 +565,6 @@ slice_requirements = {
 #     10,
 # )
 
-plot_reward_ws_comparison(1, ["rr", "mt", "ppo"], [10], "moderate", "full", 1)
+# plot_reward_ws_comparison(50, ["rr", "mt", "ppo"], [10], "full")
+plot_cum_reward_ws_comparison(50, ["rr", "mt", "ppo"], [10], "full")
 # plot_reward_obs_comparison(1, ["ppo"], 50, "light", ["full", "partial"], 10)
