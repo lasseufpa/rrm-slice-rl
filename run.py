@@ -40,30 +40,30 @@ traffic_throughputs = {
         "urllc": 1,
         "be": 5,
     },
-    "moderate": {
-        "embb": 25,
-        "urllc": 5,
-        "be": 10,
-    },
+    # "moderate": {
+    #     "embb": 25,
+    #     "urllc": 5,
+    #     "be": 10,
+    # },
 }
 slice_requirements_traffics = {
     "light": {
         "embb": {"throughput": 10, "latency": 20, "pkt_loss": 0.2},
-        "urllc": {"throughput": 1, "latency": 1, "pkt_loss": 0.001},
+        "urllc": {"throughput": 1, "latency": 1, "pkt_loss": 1e-5},
         "be": {"long_term_pkt_thr": 5, "fifth_perc_pkt_thr": 2},
     },
-    "moderate": {
-        "embb": {"throughput": 20, "latency": 20, "pkt_loss": 0.2},
-        "urllc": {"throughput": 5, "latency": 1, "pkt_loss": 0.001},
-        "be": {"long_term_pkt_thr": 10, "fifth_perc_pkt_thr": 5},
-    },
+    # "moderate": {
+    #     "embb": {"throughput": 20, "latency": 20, "pkt_loss": 0.2},
+    #     "urllc": {"throughput": 5, "latency": 1, "pkt_loss": 1e-5},
+    #     "be": {"long_term_pkt_thr": 10, "fifth_perc_pkt_thr": 5},
+    # },
 }
 
 models = ["td3"]  # ["ppo", "sac", "td3", "ppo"]
 traffics_list = traffic_throughputs.keys()
 obs_space_modes = ["full", "partial"]
 # obs_space_modes = ["partial"]
-windows_sizes = [1, 10, 50]
+windows_sizes = [1, 50, 100]
 # windows_sizes = [10]
 seed = 10
 model_save_freq = int(
