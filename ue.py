@@ -31,7 +31,7 @@ class UE:
         plots: bool = False,
         rng: BitGenerator = np.random.default_rng(),
         windows_size_obs: int = 1,
-        windows_size: int = 100,
+        windows_size: int = 10,
         normalize_obs: bool = False,
     ) -> None:
         self.bs_name = bs_name
