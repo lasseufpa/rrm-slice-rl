@@ -5,7 +5,7 @@ evaluations/
 stable-baselines3/
 
 # VecNormalize models
-vecnormalize_models/
+vecnormalize_models*/
 
 # Tensorboard logs
 tensorboard-logs/
