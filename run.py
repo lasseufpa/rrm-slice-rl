@@ -40,11 +40,11 @@ traffic_throughputs = {
         "urllc": 1,
         "be": 5,
     },
-    # "moderate": {
-    #     "embb": 25,
-    #     "urllc": 5,
-    #     "be": 10,
-    # },
+    "moderate": {
+        "embb": 25,
+        "urllc": 5,
+        "be": 10,
+    },
 }
 slice_requirements_traffics = {
     "light": {
@@ -52,19 +52,19 @@ slice_requirements_traffics = {
         "urllc": {"throughput": 1, "latency": 1, "pkt_loss": 0.001},
         "be": {"long_term_pkt_thr": 5, "fifth_perc_pkt_thr": 2},
     },
-    # "moderate": {
-    #     "embb": {"throughput": 20, "latency": 20, "pkt_loss": 0.2},
-    #     "urllc": {"throughput": 5, "latency": 1, "pkt_loss": 0.001},
-    #     "be": {"long_term_pkt_thr": 10, "fifth_perc_pkt_thr": 5},
-    # },
+    "moderate": {
+        "embb": {"throughput": 20, "latency": 20, "pkt_loss": 0.2},
+        "urllc": {"throughput": 5, "latency": 1, "pkt_loss": 0.001},
+        "be": {"long_term_pkt_thr": 10, "fifth_perc_pkt_thr": 5},
+    },
 }
 
-models = ["sac", "td3"]  # ["ppo", "sac", "td3", "ppo"]
+models = ["td3"]  # ["ppo", "sac", "td3", "ppo"]
 traffics_list = traffic_throughputs.keys()
-# obs_space_modes = ["full", "partial"]
-obs_space_modes = ["full"]
-# windows_sizes = [1, 10, 50]
-windows_sizes = [10]
+obs_space_modes = ["full", "partial"]
+# obs_space_modes = ["partial"]
+windows_sizes = [1, 10, 50]
+# windows_sizes = [10]
 seed = 10
 model_save_freq = int(
     train_param["total_trials"]
@@ -74,29 +74,20 @@ model_save_freq = int(
 )
 n_eval_episodes = 5  # default is 5
 eval_freq = 10000  # default is 10000
+test_model = "best"  # or last
 
 
 # Instantiate the agent
 def create_agent(
-    type: str, env: VecNormalize, mode: str, obs_space_mode: str, windows_size_obs: int
+    type: str,
+    env: VecNormalize,
+    mode: str,
+    obs_space_mode: str,
+    windows_size_obs: int,
+    test_model: str = "best",
 ):
     if mode == "train":
-        if type == "a2c":
-            return A2C(
-                "MlpPolicy", env, verbose=0, tensorboard_log="./tensorboard-logs/"
-            )
-        elif type == "ppo":
-            return PPO(
-                "MlpPolicy",
-                env,
-                verbose=0,
-                tensorboard_log="./tensorboard-logs/",
-            )
-        elif type == "dqn":
-            return DQN(
-                "MlpPolicy", env, verbose=0, tensorboard_log="./tensorboard-logs/"
-            )
-        elif type == "sac":
+        if type == "sac":
             return SAC(
                 "MlpPolicy",
                 env,
@@ -113,33 +104,22 @@ def create_agent(
                 policy_kwargs=dict(net_arch=[400, 300]),
             )
     elif mode == "test":
-        if type == "a2c":
-            return A2C.load(
-                "./agents/a2c_{}_ws{}".format(obs_space_mode, windows_size_obs),
-                None,
-                verbose=0,
+        path = (
+            "./agents/best_{}_{}_ws{}/best_model".format(
+                type, obs_space_mode, windows_size_obs
             )
-        elif type == "ppo":
-            return PPO.load(
-                "./agents/ppo_{}_ws{}".format(obs_space_mode, windows_size_obs),
-                None,
-                verbose=0,
-            )
-        elif type == "dqn":
-            return DQN.load(
-                "./agents/dqn_{}_ws{}".format(obs_space_mode, windows_size_obs),
-                None,
-                verbose=0,
-            )
-        elif type == "sac":
+            if test_model == "best"
+            else "./agents/{}_{}_ws{}".format(type, obs_space_mode, windows_size_obs)
+        )
+        if type == "sac":
             return SAC.load(
-                "./agents/sac_{}_ws{}".format(obs_space_mode, windows_size_obs),
+                path,
                 None,
                 verbose=0,
             )
         elif type == "td3":
             return TD3.load(
-                "./agents/td3_{}_ws{}".format(obs_space_mode, windows_size_obs),
+                path,
                 None,
                 verbose=0,
             )
@@ -268,7 +248,9 @@ for windows_size_obs in tqdm(windows_sizes, desc="Windows size", leave=False):
                 env = VecNormalize.load(dir_vec_file, env)
                 env.training = False
                 env.norm_reward = False
-            agent = create_agent(model, env, "test", obs_space_mode, windows_size_obs)
+            agent = create_agent(
+                model, env, "test", obs_space_mode, windows_size_obs, test_model
+            )
             agent.set_random_seed(seed)
             for _ in tqdm(
                 range(test_param["total_trials"] + 1 - test_param["initial_trial"]),
