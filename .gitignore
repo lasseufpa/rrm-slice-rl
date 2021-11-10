@@ -1,5 +1,5 @@
 # Evaluations from EvalCallback
-evaluations/
+evaluations*/
 
 # Stable baselines code (debug)
 stable-baselines3/
@@ -8,7 +8,7 @@ stable-baselines3/
 vecnormalize_models*/
 
 # Tensorboard logs
-tensorboard-logs/
+tensorboard-logs*/
 
 # Models info
 *.zip
