@@ -1,10 +1,8 @@
 import os
 
 import numpy as np
-from stable_baselines3 import A2C, DQN, PPO, SAC, TD3
+from stable_baselines3 import SAC, TD3
 from stable_baselines3.common.callbacks import CheckpointCallback, EvalCallback
-from stable_baselines3.common.env_checker import check_env
-from stable_baselines3.common.evaluation import evaluate_policy
 from stable_baselines3.common.vec_env import DummyVecEnv, VecNormalize
 from tqdm import tqdm
 
@@ -14,14 +12,14 @@ from callbacks import ProgressBarManager
 
 train_param = {
     "steps_per_trial": 2000,
-    "total_trials": 49,
+    "total_trials": 45,
     "runs_per_agent": 10,
 }
 
 test_param = {
     "steps_per_trial": 2000,
     "total_trials": 50,
-    "initial_trial": 50,
+    "initial_trial": 46,
     "runs_per_agent": 1,
 }
 
@@ -36,7 +34,7 @@ traffic_types = np.concatenate(
 )
 traffic_throughputs = {
     "light": {
-        "embb": 15,
+        "embb": 12,
         "urllc": 1,
         "be": 5,
     },
@@ -61,10 +59,9 @@ slice_requirements_traffics = {
 
 models = ["td3"]  # ["ppo", "sac", "td3", "ppo"]
 traffics_list = traffic_throughputs.keys()
-obs_space_modes = ["full", "partial"]
-# obs_space_modes = ["partial"]
+# obs_space_modes = ["full", "partial"]
+obs_space_modes = ["partial"]
 windows_sizes = [1, 50, 100]
-# windows_sizes = [10]
 seed = 10
 model_save_freq = int(
     train_param["total_trials"]
@@ -268,4 +265,5 @@ for windows_size_obs in tqdm(windows_sizes, desc="Windows size", leave=False):
                         else agent.predict(obs)
                     )
                     obs, rewards, dones, info = env.step(action)
-                env.reset()
+                if model not in models:
+                    env.reset()
