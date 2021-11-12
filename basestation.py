@@ -180,9 +180,9 @@ class Basestation(gym.Env):
         self.step_number += 1
         if self.step_number % self.steps_update_traffics == 0:
             self.update_ues_traffic()
-        obs_sample = self.observation_space.sample()
+
         return (
-            obs_sample,  # self.get_obs_space(),
+            self.get_obs_space(),
             reward,
             self.step_number == (self.max_number_steps),
             {},
@@ -212,8 +212,8 @@ class Basestation(gym.Env):
             hist_label: np.array([]) if hist_label != "actions" else np.empty((0, 3))
             for hist_label in self.hist_labels
         }
-        obs_sample = self.observation_space.sample()
-        return obs_sample
+
+        return self.get_obs_space()
 
     def render(self, mode="human"):
         pass
