@@ -36,7 +36,7 @@ traffic_throughputs = {
     "light": {
         "embb": 12,
         "urllc": 1,
-        "be": 5,
+        "be": 12,
     },
     # "moderate": {
     #     "embb": 25,
@@ -57,7 +57,7 @@ slice_requirements_traffics = {
     # },
 }
 
-models = ["td3"]  # ["ppo", "sac", "td3", "ppo"]
+models = ["sac"]
 traffics_list = traffic_throughputs.keys()
 # obs_space_modes = ["full", "partial"]
 obs_space_modes = ["partial"]
