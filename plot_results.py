@@ -34,8 +34,8 @@ data_index = {
 }
 ws_names_colors = {
     1: "#003f5c",
-    10: "#444e86",
-    50: "#955196",
+    50: "#444e86",
+    100: "#955196",
 }
 obs_names_colors = {
     "full": ("Full", "#003f5c"),
@@ -258,11 +258,12 @@ slice_requirements_traffics = {
 
 ##### Comparing different windows sizes for full and partial obs space
 plot_rewards(
-    "ws__obs_comparison_td3",
-    [50],
-    ["rr", "mt", "td3"],
-    [1, 10, 50],
-    ["full"],
+    "ws_obs_comparison_td3",
+    [46, 47, 48, 49, 50],
+    # ["td3"],
+    ["rr", "mt", "sac", "td3"],
+    [1, 50, 100],
+    ["partial"],
     # [2, 0, 1],
     cumulative=True,
 )
