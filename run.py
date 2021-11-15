@@ -34,15 +34,15 @@ traffic_types = np.concatenate(
 )
 traffic_throughputs = {
     "light": {
-        "embb": 12,
+        "embb": 15,
         "urllc": 1,
-        "be": 12,
+        "be": 15,
     },
-    # "moderate": {
-    #     "embb": 25,
-    #     "urllc": 5,
-    #     "be": 10,
-    # },
+    "moderate": {
+        "embb": 25,
+        "urllc": 5,
+        "be": 25,
+    },
 }
 slice_requirements_traffics = {
     "light": {
@@ -50,11 +50,11 @@ slice_requirements_traffics = {
         "urllc": {"throughput": 1, "latency": 1, "pkt_loss": 1e-5},
         "be": {"long_term_pkt_thr": 5, "fifth_perc_pkt_thr": 2},
     },
-    # "moderate": {
-    #     "embb": {"throughput": 20, "latency": 20, "pkt_loss": 0.2},
-    #     "urllc": {"throughput": 5, "latency": 1, "pkt_loss": 1e-5},
-    #     "be": {"long_term_pkt_thr": 10, "fifth_perc_pkt_thr": 5},
-    # },
+    "moderate": {
+        "embb": {"throughput": 20, "latency": 20, "pkt_loss": 0.2},
+        "urllc": {"throughput": 5, "latency": 1, "pkt_loss": 1e-5},
+        "be": {"long_term_pkt_thr": 10, "fifth_perc_pkt_thr": 5},
+    },
 }
 
 models = ["sac"]
