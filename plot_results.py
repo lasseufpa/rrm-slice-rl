@@ -261,7 +261,7 @@ plot_rewards(
     "ws_obs_comparison_td3",
     [46, 47, 48, 49, 50],
     # ["td3"],
-    ["rr", "mt", "sac", "td3"],
+    ["rr", "mt", "pf", "sac"],
     [1, 50, 100],
     ["partial"],
     # [2, 0, 1],
