@@ -15,7 +15,6 @@ gym = "*"
 tqdm = "*"
 stable-baselines3 = "*"
 tensorboard = "*"
-tensorboard-plugin-profile = "*"
 
 [dev-packages]
 black = "*"

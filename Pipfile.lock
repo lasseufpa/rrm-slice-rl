@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "0ce813646e164bb0f418522319ef53acad728ca0cb6d6c478888534933758ce9"
+            "sha256": "fc2387e5e1fae1b199fed404e5fb8774b09c77bdbdf9fc82f0ef513c6ccb6eb4"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -191,13 +191,6 @@
             ],
             "markers": "python_version >= '3.6'",
             "version": "==1.42.0"
-        },
-        "gviz-api": {
-            "hashes": [
-                "sha256:846692dd8cc73224fc31b18e41589bd934e1cc05090c6576af4b4b26c2e71b90",
-                "sha256:a05055fed8c279f34f4b496eace7648c7fe9c1b06851e8a36e748541f1adbb05"
-            ],
-            "version": "==1.10.0"
         },
         "gym": {
             "hashes": [
@@ -771,14 +764,6 @@
             ],
             "markers": "python_version >= '3.6'",
             "version": "==0.6.1"
-        },
-        "tensorboard-plugin-profile": {
-            "hashes": [
-                "sha256:13cb6b158657f8ee42ee6e825a6eebd3b7392290e6c7e65ce607a2e46f824c9a",
-                "sha256:f832698d87a773b9a017fc4dd5cf598a1ff942ccfbf3392c83fe12c949ab9f52"
-            ],
-            "index": "pypi",
-            "version": "==2.5.0"
         },
         "tensorboard-plugin-wit": {
             "hashes": [
