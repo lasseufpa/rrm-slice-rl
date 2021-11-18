@@ -33,6 +33,7 @@ class UE:
         windows_size_obs: int = 1,
         windows_size: int = 10,
         normalize_obs: bool = False,
+        root_path: str = ".",
     ) -> None:
         self.bs_name = bs_name
         self.id = id
@@ -43,8 +44,9 @@ class UE:
         self.traffic_type = traffic_type
         self.frequency = frequency
         self.total_number_rbs = total_number_rbs
+        self.root_path = root_path
         self.se = Channel.read_se_file(
-            "./se/trial{}_f{}_ue{}.npy", trial_number, frequency, id
+            "{}/se/trial{}_f{}_ue{}.npy", trial_number, frequency, id, self.root_path
         )
         self.buffer_max_lat = buffer_max_lat
         self.buffer = Buffer(max_packets_buffer, buffer_max_lat)
@@ -232,7 +234,9 @@ class UE:
         """
         Save variables history to external file.
         """
-        path = "./hist/{}/trial{}/ues/".format(self.bs_name, self.trial_number)
+        path = "{}/hist/{}/trial{}/ues/".format(
+            self.root_path, self.bs_name, self.trial_number
+        )
         try:
             os.makedirs(path)
         except OSError:
@@ -240,14 +244,18 @@ class UE:
 
         np.savez_compressed((path + "ue{}").format(self.id), **self.no_windows_hist)
         if self.plots:
-            UE.plot_metrics(self.bs_name, self.trial_number, self.id)
+            UE.plot_metrics(self.bs_name, self.trial_number, self.id, self.root_path)
 
     @staticmethod
-    def read_hist(bs_name: str, trial_number: int, ue_id: int) -> np.array:
+    def read_hist(
+        bs_name: str, trial_number: int, ue_id: int, root_path: str = "."
+    ) -> np.array:
         """
         Read variables history from external file.
         """
-        path = "./hist/{}/trial{}/ues/ue{}.npz".format(bs_name, trial_number, ue_id)
+        path = "{}/hist/{}/trial{}/ues/ue{}.npz".format(
+            root_path, bs_name, trial_number, ue_id
+        )
         data = np.load(path)
         return np.array(
             [
@@ -264,12 +272,14 @@ class UE:
         )
 
     @staticmethod
-    def plot_metrics(bs_name: str, trial_number: int, ue_id: int) -> None:
+    def plot_metrics(
+        bs_name: str, trial_number: int, ue_id: int, root_path: str = "."
+    ) -> None:
         """
         Plot UE performance obtained over a specific trial. Read the
         information from external file.
         """
-        hist = UE.read_hist(bs_name, trial_number, ue_id)
+        hist = UE.read_hist(bs_name, trial_number, ue_id, root_path)
 
         title_labels = [
             "Received Throughput",
@@ -301,7 +311,9 @@ class UE:
             ax.grid()
         fig.tight_layout()
         fig.savefig(
-            "./hist/{}/trial{}/ues/ue{}.png".format(bs_name, trial_number, ue_id),
+            "{}/hist/{}/trial{}/ues/ue{}.png".format(
+                root_path, bs_name, trial_number, ue_id
+            ),
             bbox_inches="tight",
             pad_inches=0,
             format="png",

@@ -24,6 +24,7 @@ class Slice:
         ues: list,
         plots: bool,
         save_hist: bool = False,
+        root_path: str = ".",
     ) -> None:
         self.bs_name = bs_name
         self.id = id
@@ -50,6 +51,7 @@ class Slice:
         self.ues_order = []
         self.num_rbgs_assigned = 0
         self.rr_index = 0
+        self.root_path = root_path
 
     def add_ue(self, ue: UE) -> None:
         """
@@ -113,7 +115,9 @@ class Slice:
         """
         Save slice variables history to external file.
         """
-        path = "./hist/{}/trial{}/slices/".format(self.bs_name, self.trial_number)
+        path = "{}/hist/{}/trial{}/slices/".format(
+            self.root_path, self.bs_name, self.trial_number
+        )
         try:
             os.makedirs(path)
         except OSError:
@@ -121,15 +125,17 @@ class Slice:
 
         np.savez_compressed((path + "slice{}").format(self.id), **self.no_windows_hist)
         if self.plots:
-            Slice.plot_metrics(self.bs_name, self.trial_number, self.id)
+            Slice.plot_metrics(self.bs_name, self.trial_number, self.id, self.root_path)
 
     @staticmethod
-    def read_hist(bs_name: str, trial_number: int, slice_id: int) -> None:
+    def read_hist(
+        bs_name: str, trial_number: int, slice_id: int, root_path: str = "."
+    ) -> None:
         """
         Read slice variables history from external file.
         """
-        path = "./hist/{}/trial{}/slices/slice{}.npz".format(
-            bs_name, trial_number, slice_id
+        path = "{}/hist/{}/trial{}/slices/slice{}.npz".format(
+            root_path, bs_name, trial_number, slice_id
         )
         data = np.load(path)
         return np.array(
@@ -147,12 +153,14 @@ class Slice:
         )
 
     @staticmethod
-    def plot_metrics(bs_name: str, trial_number: int, slice_id: int) -> None:
+    def plot_metrics(
+        bs_name: str, trial_number: int, slice_id: int, root_path: str = "."
+    ) -> None:
         """
         Plot slice performance obtained over a specific trial. Read the
         information from external file.
         """
-        hist = Slice.read_hist(bs_name, trial_number, slice_id)
+        hist = Slice.read_hist(bs_name, trial_number, slice_id, root_path)
 
         title_labels = [
             "Received Throughput",
@@ -184,8 +192,8 @@ class Slice:
             ax.grid()
         fig.tight_layout()
         fig.savefig(
-            "./hist/{}/trial{}/slices/slice{}.png".format(
-                bs_name, trial_number, slice_id
+            "{}/hist/{}/trial{}/slices/slice{}.png".format(
+                root_path, bs_name, trial_number, slice_id
             ),
             bbox_inches="tight",
             pad_inches=0,

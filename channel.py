@@ -161,12 +161,18 @@ class Channel:
 
     @staticmethod
     def read_se_file(
-        file_path: str, trial_number: int, frequency_index: int, ue_number: int
+        file_path: str,
+        trial_number: int,
+        frequency_index: int,
+        ue_number: int,
+        root_path: str = ".",
     ) -> np.array:
         """
         Read SE values for each UE from external files.
         """
-        return np.load(file_path.format(trial_number, frequency_index, ue_number))
+        return np.load(
+            file_path.format(root_path, trial_number, frequency_index, ue_number)
+        )
 
     @staticmethod
     def plot_se(
