@@ -15,6 +15,7 @@ gym = "*"
 tqdm = "*"
 stable-baselines3 = "*"
 tensorboard = "*"
+optuna = "*"
 
 [dev-packages]
 black = "*"
