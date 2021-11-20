@@ -21,10 +21,9 @@ N_EVALUATIONS = 5
 N_TIMESTEPS = int(1e5)
 EVAL_FREQ = int(N_TIMESTEPS / N_EVALUATIONS)
 N_EVAL_EPISODES = 3
-SEED = 10
+SEED = 1
 DEFAULT_HYPERPARAMS = {
     "policy": "MlpPolicy",
-    "seed": SEED,
 }
 
 
