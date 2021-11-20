@@ -16,6 +16,7 @@ tqdm = "*"
 stable-baselines3 = "*"
 tensorboard = "*"
 optuna = "*"
+joblib = "*"
 
 [dev-packages]
 black = "*"
