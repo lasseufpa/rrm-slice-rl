@@ -21,7 +21,7 @@ N_EVALUATIONS = 5
 N_TIMESTEPS = int(1e5)
 EVAL_FREQ = int(N_TIMESTEPS / N_EVALUATIONS)
 N_EVAL_EPISODES = 3
-SEED = 1
+SEED = 10
 DEFAULT_HYPERPARAMS = {
     "policy": "MlpPolicy",
 }
@@ -171,7 +171,7 @@ def objective(trial: optuna.Trial) -> float:
     env = VecNormalize(env)
     kwargs = DEFAULT_HYPERPARAMS.copy()
     kwargs.update(sample_sac_params(trial))
-    model = SAC(env=env, **kwargs)
+    model = SAC(env=env, seed=SEED, **kwargs)
     model.set_random_seed(SEED)
     eval_callback = TrialEvalCallback(
         env,
@@ -184,7 +184,7 @@ def objective(trial: optuna.Trial) -> float:
     nan_encountered = False
     try:
         model.learn(N_TIMESTEPS, callback=eval_callback)
-    except AssertionError as e:
+    except Exception as e:
         print(e)
         nan_encountered = True
     finally:
