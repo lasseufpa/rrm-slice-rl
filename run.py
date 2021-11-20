@@ -3,6 +3,7 @@ import os
 import numpy as np
 from stable_baselines3 import SAC, TD3
 from stable_baselines3.common.callbacks import CheckpointCallback, EvalCallback
+from stable_baselines3.common.monitor import Monitor
 from stable_baselines3.common.vec_env import DummyVecEnv, VecNormalize
 from tqdm import tqdm
 
@@ -156,6 +157,7 @@ for windows_size_obs in tqdm(windows_sizes, desc="Windows size", leave=False):
                 obs_space_mode=obs_space_mode,
                 rng=rng,
             )
+            env = Monitor(env)
             env = DummyVecEnv([lambda: env])
             dir_vec_file = dir_vec_models + "/{}_{}_ws{}.pkl".format(
                 model, obs_space_mode, windows_size_obs
@@ -241,6 +243,7 @@ for windows_size_obs in tqdm(windows_sizes, desc="Windows size", leave=False):
                 dir_vec_file = dir_vec_models + "/{}_{}_ws{}.pkl".format(
                     model, obs_space_mode, windows_size_obs
                 )
+                env = Monitor(env)
                 env = DummyVecEnv([lambda: env])
                 env = VecNormalize.load(dir_vec_file, env)
                 env.training = False
