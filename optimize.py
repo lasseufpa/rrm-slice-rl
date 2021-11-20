@@ -21,11 +21,10 @@ N_EVALUATIONS = 5
 N_TIMESTEPS = int(1e5)
 EVAL_FREQ = int(N_TIMESTEPS / N_EVALUATIONS)
 N_EVAL_EPISODES = 3
-
-ENV_ID = "CartPole-v1"
-
+SEED = 10
 DEFAULT_HYPERPARAMS = {
     "policy": "MlpPolicy",
+    "seed": SEED,
 }
 
 
@@ -151,6 +150,7 @@ def objective(trial: optuna.Trial) -> float:
             "be": {"long_term_pkt_thr": 10, "fifth_perc_pkt_thr": 5},
         },
     }
+    rng = np.random.default_rng(SEED)
     env = Basestation(
         bs_name="train/{}/ws_{}/{}/".format(
             "SAC",
@@ -165,6 +165,7 @@ def objective(trial: optuna.Trial) -> float:
         windows_size_obs=windows_size_obs,
         obs_space_mode=obs_space_mode,
         root_path="../rrm-slice-rl",
+        rng=rng,
     )
     env = Monitor(env)
     env = DummyVecEnv([lambda: env])
@@ -172,6 +173,7 @@ def objective(trial: optuna.Trial) -> float:
     kwargs = DEFAULT_HYPERPARAMS.copy()
     kwargs.update(sample_sac_params(trial))
     model = SAC(env=env, **kwargs)
+    model.set_random_seed(SEED)
     eval_callback = TrialEvalCallback(
         env,
         trial,
@@ -207,7 +209,7 @@ if __name__ == "__main__":
         for obs_space_mode in obs_space_modes:
             torch.set_num_threads(1)
 
-            sampler = TPESampler(n_startup_trials=N_STARTUP_TRIALS)
+            sampler = TPESampler(n_startup_trials=N_STARTUP_TRIALS, seed=SEED)
             pruner = MedianPruner(
                 n_startup_trials=N_STARTUP_TRIALS, n_warmup_steps=N_EVALUATIONS // 3
             )

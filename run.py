@@ -92,6 +92,7 @@ def create_agent(
                 verbose=0,
                 tensorboard_log="./tensorboard-logs/",
                 policy_kwargs=dict(net_arch=[400, 300]),
+                seed=seed,
             )
         elif type == "td3":
             return TD3(
@@ -100,6 +101,7 @@ def create_agent(
                 verbose=0,
                 tensorboard_log="./tensorboard-logs/",
                 policy_kwargs=dict(net_arch=[400, 300]),
+                seed=seed,
             )
     elif mode == "test":
         path = (
