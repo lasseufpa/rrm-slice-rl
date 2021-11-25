@@ -1,5 +1,6 @@
 import os
 
+import joblib
 import numpy as np
 from stable_baselines3 import SAC, TD3
 from stable_baselines3.common.callbacks import CheckpointCallback, EvalCallback
@@ -59,9 +60,7 @@ slice_requirements_traffics = {
 }
 
 models = ["sac"]
-traffics_list = traffic_throughputs.keys()
-# obs_space_modes = ["full", "partial"]
-obs_space_modes = ["partial"]
+obs_space_modes = ["full", "partial"]
 windows_sizes = [1, 50, 100]
 seed = 10
 model_save_freq = int(
@@ -84,22 +83,45 @@ def create_agent(
     windows_size_obs: int,
     test_model: str = "best",
 ):
+    def optimized_hyperparameters(model: str, obs_space: str, windows_size: int):
+        hyperparameters = joblib.load(
+            "hyperparameter_opt/{}_{}_ws{}.pkl".format(model, obs_space, windows_size)
+        ).best_params
+        hyperparameters["target_entropy"] = "auto"
+        hyperparameters["ent_coef"] = "auto"
+        hyperparameters["gradient_steps"] = hyperparameters["train_freq"]
+        net_arch = {
+            "small": [64, 64],
+            "medium": [256, 256],
+            "big": [400, 300],
+        }[hyperparameters["net_arch"]]
+        hyperparameters.pop("net_arch")
+        hyperparameters["policy_kwargs"] = dict(net_arch=net_arch)
+
+        return hyperparameters
+
     if mode == "train":
         if type == "sac":
+            hyperparameters = optimized_hyperparameters(
+                type, obs_space_mode, windows_size_obs
+            )
             return SAC(
                 "MlpPolicy",
                 env,
                 verbose=0,
                 tensorboard_log="./tensorboard-logs/",
-                policy_kwargs=dict(net_arch=[400, 300]),
+                **hyperparameters,
             )
         elif type == "td3":
+            hyperparameters = optimized_hyperparameters(
+                type, obs_space_mode, windows_size_obs
+            )
             return TD3(
                 "MlpPolicy",
                 env,
                 verbose=0,
                 tensorboard_log="./tensorboard-logs/",
-                policy_kwargs=dict(net_arch=[400, 300]),
+                **hyperparameters,
             )
     elif mode == "test":
         path = (
