@@ -83,12 +83,10 @@ def create_agent(
     windows_size_obs: int,
     test_model: str = "best",
 ):
-    def optimized_hyperparameters(model: str, obs_space: str, windows_size: int):
+    def optimized_hyperparameters(model: str, obs_space: str):
         hyperparameters = joblib.load(
-            "hyperparameter_opt/{}_{}_ws{}.pkl".format(model, obs_space, windows_size)
+            "hyperparameter_opt/{}_{}.pkl".format(model, obs_space)
         ).best_params
-        hyperparameters["target_entropy"] = "auto"
-        hyperparameters["ent_coef"] = "auto"
         hyperparameters["gradient_steps"] = hyperparameters["train_freq"]
         net_arch = {
             "small": [64, 64],
@@ -102,26 +100,24 @@ def create_agent(
 
     if mode == "train":
         if type == "sac":
-            hyperparameters = optimized_hyperparameters(
-                type, obs_space_mode, windows_size_obs
-            )
+            hyperparameters = optimized_hyperparameters(type, obs_space_mode)
             return SAC(
                 "MlpPolicy",
                 env,
                 verbose=0,
                 tensorboard_log="./tensorboard-logs/",
                 **hyperparameters,
+                seed=seed,
             )
         elif type == "td3":
-            hyperparameters = optimized_hyperparameters(
-                type, obs_space_mode, windows_size_obs
-            )
+            hyperparameters = optimized_hyperparameters(type, obs_space_mode)
             return TD3(
                 "MlpPolicy",
                 env,
                 verbose=0,
                 tensorboard_log="./tensorboard-logs/",
                 **hyperparameters,
+                seed=seed,
             )
     elif mode == "test":
         path = (
