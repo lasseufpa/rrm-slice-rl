@@ -196,7 +196,7 @@ if __name__ == "__main__":
                 sampler=sampler,
                 pruner=pruner,
                 direction="maximize",
-                study_name="sac_{}_ws{}".format(obs_space_mode, windows_size_obs),
+                study_name="sac_{}".format(obs_space_mode),
             )
             try:
                 study.optimize(objective, n_trials=N_TRIALS)
