@@ -249,22 +249,21 @@ for windows_size_obs in tqdm(windows_sizes, desc="Windows size", leave=False):
                 save_hist=True,
                 baseline=False if model in models else True,
             )
-            obs = (
-                [env.reset(test_param["initial_trial"])]
-                if model in models
-                else env.reset(test_param["initial_trial"])
-            )
 
             if model in models:
                 dir_vec_models = "./vecnormalize_models"
                 dir_vec_file = dir_vec_models + "/{}_{}_ws{}.pkl".format(
                     model, obs_space_mode, windows_size_obs
                 )
-                env = Monitor(env)
+                env = Monitor(env, reset_keywords=["initial_trial"])
+                dict_reset = {"initial_trial": test_param["initial_trial"]}
+                obs = [env.reset(**dict_reset)]
                 env = DummyVecEnv([lambda: env])
                 env = VecNormalize.load(dir_vec_file, env)
                 env.training = False
                 env.norm_reward = False
+            elif not (model in models):
+                obs = env.reset(test_param["initial_trial"])
             agent = create_agent(
                 model, env, "test", obs_space_mode, windows_size_obs, test_model
             )
