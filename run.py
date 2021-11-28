@@ -92,8 +92,7 @@ def create_agent(
             "small": [64, 64],
             "medium": [256, 256],
             "big": [400, 300],
-        }[hyperparameters["net_arch"]]
-        hyperparameters.pop("net_arch")
+        }["big"]
         hyperparameters["policy_kwargs"] = dict(net_arch=net_arch)
 
         return hyperparameters
