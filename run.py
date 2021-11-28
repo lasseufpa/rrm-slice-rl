@@ -87,7 +87,6 @@ def create_agent(
         hyperparameters = joblib.load(
             "hyperparameter_opt/{}_{}.pkl".format(model, obs_space)
         ).best_params
-        hyperparameters["gradient_steps"] = hyperparameters["train_freq"]
         net_arch = {
             "small": [64, 64],
             "medium": [256, 256],

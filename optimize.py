@@ -18,7 +18,7 @@ from basestation import Basestation
 N_TRIALS = 100
 N_STARTUP_TRIALS = 5
 N_EVALUATIONS = 5
-N_TIMESTEPS = int(4e5)
+N_TIMESTEPS = int(9e5)
 EVAL_FREQ = int(N_TIMESTEPS / N_EVALUATIONS)
 N_EVAL_EPISODES = 5
 SEED = 10
@@ -36,9 +36,7 @@ def sample_sac_params(trial: optuna.Trial) -> Dict[str, Any]:
     gamma = trial.suggest_categorical("gamma", [0.98, 0.99, 0.9999])
     learning_rate = trial.suggest_loguniform("learning_rate", 1e-5, 1)
     batch_size = trial.suggest_categorical("batch_size", [128, 256, 512])
-    train_freq = trial.suggest_categorical("train_freq", [1, 8, 16])
     tau = trial.suggest_categorical("tau", [0.001, 0.005, 0.01])
-    gradient_steps = train_freq
 
     net_arch = {
         "small": [64, 64],
@@ -50,8 +48,6 @@ def sample_sac_params(trial: optuna.Trial) -> Dict[str, Any]:
         "gamma": gamma,
         "learning_rate": learning_rate,
         "batch_size": batch_size,
-        "train_freq": train_freq,
-        "gradient_steps": gradient_steps,
         "tau": tau,
         "policy_kwargs": dict(net_arch=net_arch),
     }
