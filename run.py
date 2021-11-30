@@ -254,7 +254,7 @@ for windows_size_obs in tqdm(windows_sizes, desc="Windows size", leave=False):
                 dir_vec_file = dir_vec_models + "/{}_{}_ws{}.pkl".format(
                     model, obs_space_mode, windows_size_obs
                 )
-                env = Monitor(env, reset_keywords=["initial_trial"])
+                env = Monitor(env)
                 dict_reset = {"initial_trial": test_param["initial_trial"]}
                 obs = [env.reset(**dict_reset)]
                 env = DummyVecEnv([lambda: env])
