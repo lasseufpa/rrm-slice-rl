@@ -18,7 +18,7 @@ from basestation import Basestation
 N_TRIALS = 100
 N_STARTUP_TRIALS = 5
 N_EVALUATIONS = 5
-N_TIMESTEPS = int(2e5)
+N_TIMESTEPS = int(1e5)
 EVAL_FREQ = int(N_TIMESTEPS / N_EVALUATIONS)
 N_EVAL_EPISODES = 5
 SEED = 10
@@ -33,22 +33,47 @@ def sample_sac_params(trial: optuna.Trial) -> Dict[str, Any]:
     :param trial:
     :return:
     """
-    gamma = trial.suggest_categorical("gamma", [0.98, 0.99, 0.9999])
+    gamma = trial.suggest_categorical(
+        "gamma", [0.9, 0.95, 0.98, 0.99, 0.995, 0.999, 0.9999]
+    )
     learning_rate = trial.suggest_loguniform("learning_rate", 1e-5, 1)
-    batch_size = trial.suggest_categorical("batch_size", [128, 256, 512])
-    tau = trial.suggest_categorical("tau", [0.001, 0.005, 0.01])
+    batch_size = trial.suggest_categorical(
+        "batch_size", [16, 32, 64, 128, 256, 512, 1024, 2048]
+    )
+    buffer_size = trial.suggest_categorical(
+        "buffer_size", [int(1e4), int(1e5), int(1e6)]
+    )
+    learning_starts = trial.suggest_categorical(
+        "learning_starts", [0, 1000, 10000, 20000]
+    )
+    train_freq = trial.suggest_categorical(
+        "train_freq", [1, 4, 8, 16, 32, 64, 128, 256, 512]
+    )
+    # Polyak coeff
+    tau = trial.suggest_categorical("tau", [0.001, 0.005, 0.01, 0.02, 0.05, 0.08])
+    gradient_steps = train_freq
+    ent_coef = "auto"
+    net_arch = trial.suggest_categorical("net_arch", ["small", "medium", "big"])
 
     net_arch = {
         "small": [64, 64],
         "medium": [256, 256],
         "big": [400, 300],
-    }["big"]
+    }[net_arch]
+
+    target_entropy = "auto"
 
     hyperparams = {
         "gamma": gamma,
         "learning_rate": learning_rate,
         "batch_size": batch_size,
+        "buffer_size": buffer_size,
+        "learning_starts": learning_starts,
+        "train_freq": train_freq,
+        "gradient_steps": gradient_steps,
+        "ent_coef": ent_coef,
         "tau": tau,
+        "target_entropy": target_entropy,
         "policy_kwargs": dict(net_arch=net_arch),
     }
 
@@ -177,7 +202,7 @@ def objective(trial: optuna.Trial) -> float:
 
 
 if __name__ == "__main__":
-    windows_size_obss = [50]
+    windows_size_obss = [1, 50, 100]
     obs_space_modes = ["full", "partial"]
     for windows_size_obs in windows_size_obss:
         for obs_space_mode in obs_space_modes:
@@ -192,7 +217,7 @@ if __name__ == "__main__":
                 sampler=sampler,
                 pruner=pruner,
                 direction="maximize",
-                study_name="sac_{}".format(obs_space_mode),
+                study_name="sac_{}_ws{}".format(obs_space_mode, windows_size_obs),
             )
             try:
                 study.optimize(objective, n_trials=N_TRIALS)
@@ -216,7 +241,7 @@ if __name__ == "__main__":
 
             joblib.dump(
                 study,
-                "./hyperparameter_opt/sac_{}.pkl".format(
-                    obs_space_mode,
+                "./hyperparameter_opt/sac_{}_ws{}.pkl".format(
+                    obs_space_mode, windows_size_obs
                 ),
             )

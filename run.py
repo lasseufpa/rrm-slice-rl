@@ -85,14 +85,20 @@ def create_agent(
 ):
     def optimized_hyperparameters(model: str, obs_space: str):
         hyperparameters = joblib.load(
-            "hyperparameter_opt/{}_{}.pkl".format(model, obs_space)
+            "hyperparameter_opt/{}_{}_ws{}.pkl".format(
+                model, obs_space, windows_size_obs
+            )
         ).best_params
         net_arch = {
             "small": [64, 64],
             "medium": [256, 256],
             "big": [400, 300],
-        }["big"]
+        }[hyperparameters["net_arch"]]
         hyperparameters["policy_kwargs"] = dict(net_arch=net_arch)
+        hyperparameters.pop("net_arch")
+        hyperparameters["target_entropy"] = "auto"
+        hyperparameters["ent_coef"] = "auto"
+        hyperparameters["gradient_steps"] = hyperparameters["train_freq"]
 
         return hyperparameters
 
