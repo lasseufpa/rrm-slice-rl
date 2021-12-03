@@ -196,13 +196,18 @@ class Basestation(gym.Env):
         episode without past residuous. The reset function increases
         the number of trials when a trial is finished.
         """
-        if (
-            self.step_number == self.max_number_steps
-            and self.trial_number < self.max_number_trials
+        if (self.step_number == 0 and self.trial_number == 1) or (
+            self.trial_number == self.max_number_trials
         ):
+            self.trial_number = 1 if initial_trial == -1 else initial_trial
+        elif self.trial_number < self.max_number_trials:
             self.trial_number += 1
         else:
-            self.trial_number = 1 if initial_trial == -1 else initial_trial
+            raise Exception(
+                "Trial number received a non expected value equals to {}.".format(
+                    self.trial_number
+                )
+            )
         self.step_number = 0
 
         self.ues, self.slices = self.create_scenario()
