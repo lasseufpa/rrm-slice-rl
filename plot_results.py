@@ -106,11 +106,6 @@ def plot_agents_reqs(
                                         slices[slice],
                                     )[data_index[attribute][0]],
                                 )
-                            hist = (
-                                Basestation.packets_to_mbps(8192 * 8, hist)
-                                if data_index[attribute][0] in [2, 7, 8]
-                                else hist
-                            )
                             plt.plot(
                                 range(0, len(hist)),
                                 hist,
@@ -267,6 +262,12 @@ plot_rewards(
     # [2, 0, 1],
     cumulative=True,
 )
-# plot_agents_reqs(
-#     "teste2", [50], slice_requirements_traffics, ["td3", "sac"], [10], ["partial"]
-# )
+
+plot_agents_reqs(
+    "metrics",
+    np.arange(46, 51),
+    slice_requirements_traffics,
+    ["rr", "mt", "pf", "sac"],
+    [1],
+    ["partial"],
+)
