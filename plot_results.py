@@ -126,7 +126,7 @@ def plot_agents_reqs(
                                 if len(slices) > 1
                                 else None,
                                 color=agents_names_colors[agent][1],
-                                markevery=50,
+                                markevery=200,
                             )
                     # if attribute in slices_req[traffic][slice].keys():
                     #     plt.plot(
@@ -135,7 +135,7 @@ def plot_agents_reqs(
                     #         linestyle="--",
                     #         marker=slices_names_markers[slice][1],
                     #         color="blue",
-                    #         markevery=50,
+                    #         markevery=200,
                     #         zorder=3,
                     #         label="{} Req.".format(slices_names_markers[slice][0]),
                     #     )
@@ -218,7 +218,7 @@ def plot_rewards(
                         else obs_names_colors[obs_space][1]
                         if len(obs_spaces) > 1
                         else ws_names_colors[windows_size],
-                        markevery=50,
+                        markevery=200,
                     )
         fig.tight_layout()
         plt.legend(fontsize=12)
