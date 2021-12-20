@@ -36,44 +36,46 @@ class BaselineAgent:
             total_rbs, slices_number, full=True
         )
         self.round_robin_alloc = [6, 6, 5]
+        self.vec_throughput_snt = np.empty((0, 3))
 
     def max_throughput(self, obs: np.array) -> int:
-        throughputs_capacity = (
-            obs[[10, 18, 26]] * self.bandwidth * (1 / self.total_number_rbs)
-        ) / self.packet_size
-        buffer_pkt_occupancies = obs[[11, 20, 29]] * self.max_packets_buffer
-        max_pkt_throughput_avail = np.minimum(
-            throughputs_capacity, buffer_pkt_occupancies
+        se = obs[[14, 23, 32]]
+        buffer_occ = obs[[11, 20, 29]]
+        total_throughput_avail = np.min(
+            [
+                se * self.bandwidth,
+                buffer_occ * self.max_packets_buffer * self.packet_size,
+            ],
+            axis=0,
         )
-        action = (
-            (max_pkt_throughput_avail / np.sum(max_pkt_throughput_avail))
-            if np.sum(max_pkt_throughput_avail) != 0
-            else [1, 1, 1]
-        )
-        return np.array(action), []
+
+        return np.array(total_throughput_avail), []
 
     def round_robin(self, obs: np.array) -> int:
         self.round_robin_alloc = np.roll(self.round_robin_alloc, 1)
-        action = self.round_robin_alloc / np.sum(self.round_robin_alloc)
-        return np.array(action), []
+
+        return np.array(self.round_robin_alloc), []
 
     def proportional_fair(self, obs: np.array) -> int:
-        throughputs_capacity = (
-            obs[[10, 18, 26]] * self.bandwidth * (1 / self.total_number_rbs)
-        ) / self.packet_size
-        buffer_pkt_occupancies = obs[[11, 20, 29]] * self.max_packets_buffer
-        max_pkt_throughput_avail = np.minimum(
-            throughputs_capacity, buffer_pkt_occupancies
+        self.vec_throughput_snt = np.append(
+            self.vec_throughput_snt, [obs[[9, 18, 27]]], axis=0
         )
-        snt_pkt_throughput = obs[[9, 18, 27]]
-        snt_pkt_throughput[snt_pkt_throughput == 0] = 0.00001
-        fairness_calc = max_pkt_throughput_avail / snt_pkt_throughput
-        action = (
-            (self.total_rbs * fairness_calc / np.sum(fairness_calc))
-            if np.sum(fairness_calc) != 0
+        se = obs[[14, 23, 32]]
+        buffer_occ = obs[[11, 20, 29]]
+        total_throughput_avail = np.min(
+            [
+                se * self.bandwidth,
+                buffer_occ * self.max_packets_buffer * self.packet_size,
+            ],
+            axis=0,
+        )
+        factors = (
+            total_throughput_avail / np.mean(self.vec_throughput_snt, axis=0)
+            if not (0 in np.mean(self.vec_throughput_snt, axis=0))
             else [1, 1, 1]
         )
-        return np.array(action), []
+
+        return np.array(factors), []
 
     def set_env(self, _):
         pass

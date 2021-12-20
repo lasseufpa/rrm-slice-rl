@@ -1,5 +1,4 @@
 import os
-from functools import partial
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -39,11 +38,11 @@ ws_names_colors = {
 }
 obs_names_colors = {
     "full": ("Full", "#003f5c"),
-    "partial": ("Partial", "#444e86"),
+    "partial": ("Limited", "#444e86"),
 }
 obs_names_markers = {
     "full": ("Full", "*"),
-    "partial": ("Partial", "p"),
+    "partial": ("Limited", "p"),
 }
 ws_markers = {
     1: "*",
@@ -167,7 +166,7 @@ def plot_rewards(
         w, h = plt.figaspect(0.6)
         fig = plt.figure(figsize=(w, h))
         plt.xlabel(x_label, fontsize=14)
-        plt.ylabel("Reward", fontsize=14)
+        plt.ylabel("Cummulative reward", fontsize=14)
         plt.grid()
         for obs_space in obs_spaces:
             label_obs_space = (
@@ -180,41 +179,44 @@ def plot_rewards(
                     ", $W_s={}$".format(windows_size) if len(windows_sizes) > 1 else ""
                 )
                 for agent in agents:
-                    label_agent = (
-                        ", {}".format(agents_names_colors[agent][0])
-                        if len(agents) > 1
-                        else ""
-                    )
-                    hist = np.array([])
-                    for trial_number in trial_numbers:
-                        hist = np.append(
-                            hist,
-                            Basestation.read_hist(
-                                "test/{}/ws_{}/{}/".format(
-                                    agent,
-                                    windows_size,
-                                    obs_space,
-                                ),
-                                trial_number,
-                            )[data_index[attribute]],
+                    if agent in ["rr", "pf", "mt"] and obs_space == "partial":
+                        pass
+                    else:
+                        label_agent = (
+                            ", {}".format(agents_names_colors[agent][0])
+                            if len(agents) > 1
+                            else ""
                         )
-                    hist = np.cumsum(hist) if cumulative else hist
-                    plt.plot(
-                        range(0, len(hist)),
-                        hist,
-                        label=label_agent + label_windows_size + label_obs_space,
-                        marker=ws_markers[windows_size]
-                        if len(windows_sizes) > 1
-                        else obs_names_markers[obs_space][1]
-                        if len(obs_spaces) > 1
-                        else None,
-                        color=agents_names_colors[agent][1]
-                        if len(agents) > 1
-                        else obs_names_colors[obs_space][1]
-                        if len(obs_spaces) > 1
-                        else ws_names_colors[windows_size],
-                        markevery=200,
-                    )
+                        hist = np.array([])
+                        for trial_number in trial_numbers:
+                            hist = np.append(
+                                hist,
+                                Basestation.read_hist(
+                                    "test/{}/ws_{}/{}/".format(
+                                        agent,
+                                        windows_size,
+                                        obs_space,
+                                    ),
+                                    trial_number,
+                                )[data_index[attribute]],
+                            )
+                        hist = np.cumsum(hist) if cumulative else hist
+                        plt.plot(
+                            range(0, len(hist)),
+                            hist,
+                            label=label_agent + label_windows_size + label_obs_space,
+                            marker=ws_markers[windows_size]
+                            if len(windows_sizes) > 1
+                            else obs_names_markers[obs_space][1]
+                            if len(obs_spaces) > 1
+                            else None,
+                            color=agents_names_colors[agent][1]
+                            if len(agents) > 1
+                            else obs_names_colors[obs_space][1]
+                            if len(obs_spaces) > 1
+                            else ws_names_colors[windows_size],
+                            markevery=200,
+                        )
         fig.tight_layout()
         plt.legend(fontsize=12)
         if any(order):
@@ -230,6 +232,60 @@ def plot_rewards(
         )
         # plt.show()
         plt.close()
+
+
+def plot_rcv_thr(
+    fig_name: str,
+    trial_numbers: list,
+) -> None:
+    x_label = "Time (ms)"
+
+    w, h = plt.figaspect(0.6)
+    fig = plt.figure(figsize=(w, h))
+    plt.xlabel(x_label, fontsize=14)
+    plt.ylabel("Received throughput (Mbps)", fontsize=14)
+    plt.grid()
+    for slice in slices.keys():
+        label_slices = (
+            "{}".format(slices_names_markers[slice][0]) if len(slices) > 1 else ""
+        )
+        agent = "sac"
+        windows_size = 1
+        obs_space = "full"
+        # req_values = [0, slices_req]
+        hist = np.array([])
+        for trial_number in trial_numbers:
+            hist = np.append(
+                hist,
+                Slice.read_hist(
+                    "test/{}/ws_{}/{}/".format(
+                        agent,
+                        windows_size,
+                        obs_space,
+                    ),
+                    trial_number,
+                    slices[slice],
+                )[0],
+            )
+        plt.plot(
+            range(0, len(hist)),
+            hist,
+            label=label_slices,
+            markevery=200,
+        )
+
+    fig.tight_layout()
+    plt.legend(fontsize=12)
+    os.makedirs("./results", exist_ok=True)
+    fig.savefig(
+        "./results/{}_{}.pdf".format(fig_name, "rcv_thr"),
+        # bbox_inches="tight",
+        pad_inches=0,
+        format="pdf",
+        dpi=1000,
+    )
+    # plt.show()
+    plt.close()
 
 
 trial_number = 50
@@ -257,8 +313,9 @@ plot_rewards(
     [46, 47, 48, 49, 50],
     # ["td3"],
     ["rr", "mt", "pf", "sac"],
-    [1, 50, 100],
-    ["partial"],
+    # [1, 50, 100],
+    [1],
+    ["full", "partial"],
     # [2, 0, 1],
     cumulative=True,
 )
@@ -271,3 +328,5 @@ plot_agents_reqs(
     [1],
     ["partial"],
 )
+
+plot_rcv_thr("metrics", [46])  # np.arange(46, 51),
