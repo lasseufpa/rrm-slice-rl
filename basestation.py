@@ -319,6 +319,14 @@ class Basestation(gym.Env):
         Calculates the environment reward for the action taken. It considers
         the slices requirements as basis to formulate how good was the action.
         """
+        w_embb_thr = 0.2
+        w_embb_lat = 0.05
+        w_embb_loss = 0.05
+        w_urllc_thr = 0.1
+        w_urllc_lat = 0.25
+        w_urllc_loss = 0.25
+        w_be_long = 0.05
+        w_be_fifth = 0.05
         reward = 0
         for slice in self.slices:
             slice_hist = slice.get_last_no_windows_hist()
@@ -338,7 +346,7 @@ class Basestation(gym.Env):
 
                 # Throughput contribution
                 reward += (
-                    -0.2
+                    -w_embb_thr
                     * (
                         (req_thr_normalized - slice_hist["pkt_thr"])
                         / req_thr_normalized
@@ -350,7 +358,7 @@ class Basestation(gym.Env):
                 reward += (
                     0
                     if slice_hist["avg_lat"] <= req_lat_normalized
-                    else -0.1
+                    else -w_embb_lat
                     * (slice_hist["avg_lat"] - req_lat_normalized)
                     / (
                         (self.buffer_max_lat / self.slice_req_norm_factors[1])
@@ -361,7 +369,7 @@ class Basestation(gym.Env):
                 reward += (
                     0
                     if slice_hist["pkt_loss"] <= req_pkt_loss_normalized
-                    else -0.1
+                    else -w_embb_loss
                     * (slice_hist["pkt_loss"] - req_pkt_loss_normalized)
                     / (1 - req_pkt_loss_normalized)
                 )
@@ -381,7 +389,7 @@ class Basestation(gym.Env):
 
                 # Throughput contribution
                 reward += (
-                    -0.1
+                    -w_urllc_thr
                     * (
                         (req_thr_normalized - slice_hist["pkt_thr"])
                         / req_thr_normalized
@@ -393,7 +401,7 @@ class Basestation(gym.Env):
                 reward += (
                     0
                     if slice_hist["avg_lat"] <= req_lat_normalized
-                    else -0.2
+                    else -w_urllc_lat
                     * (slice_hist["avg_lat"] - req_lat_normalized)
                     / (
                         (self.buffer_max_lat / self.slice_req_norm_factors[1])
@@ -404,7 +412,7 @@ class Basestation(gym.Env):
                 reward += (
                     0
                     if slice_hist["pkt_loss"] <= req_pkt_loss_normalized
-                    else -0.2
+                    else -w_urllc_loss
                     * (slice_hist["pkt_loss"] - req_pkt_loss_normalized)
                     / (1 - req_pkt_loss_normalized)
                 )
@@ -420,7 +428,7 @@ class Basestation(gym.Env):
 
                 # Long term average throughput contribution
                 reward += (
-                    -0.05
+                    -w_be_long
                     * (
                         (req_long_thr_normalized - slice_hist["long_term_pkt_thr"])
                         / req_long_thr_normalized
@@ -430,7 +438,7 @@ class Basestation(gym.Env):
                 )
                 # Fifth percentile throughput contribution
                 reward += (
-                    -0.05
+                    -w_be_fifth
                     * (
                         (req_fifth_thr_normalized - slice_hist["fifth_perc_pkt_thr"])
                         / req_fifth_thr_normalized
