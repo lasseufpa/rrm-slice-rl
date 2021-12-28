@@ -202,7 +202,7 @@ def objective(trial: optuna.Trial) -> float:
 
 
 if __name__ == "__main__":
-    windows_size_obss = [1, 50, 100]
+    windows_size_obss = [1]  # , 50, 100]
     obs_space_modes = ["full", "partial"]
     for windows_size_obs in windows_size_obss:
         for obs_space_mode in obs_space_modes:

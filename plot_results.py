@@ -322,7 +322,7 @@ plot_rewards(
 
 plot_agents_reqs(
     "metrics",
-    np.arange(46, 51),
+    [46],
     slice_requirements_traffics,
     ["rr", "mt", "pf", "sac"],
     [1],

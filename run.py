@@ -61,7 +61,7 @@ slice_requirements_traffics = {
 
 models = ["sac"]
 obs_space_modes = ["full", "partial"]
-windows_sizes = [1, 50, 100]
+windows_sizes = [1]  # , 50, 100]
 seed = 10
 model_save_freq = int(
     train_param["total_trials"]
