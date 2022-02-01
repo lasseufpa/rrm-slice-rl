@@ -28,8 +28,8 @@ data_index = {
     "throughput": (2, "Throughput (Mbps)"),
     "latency": (4, "Latency (ms)"),
     "pkt_loss": (5, "Packet loss rate"),
-    "long_term_pkt_thr": (7, "Throughput (Mbps)"),
-    "fifth_perc_pkt_thr": (8, "Throughput (Mbps)"),
+    "long_term_pkt_thr": (7, "Long-term throughput (Mbps)"),
+    "fifth_perc_pkt_thr": (8, "Fifth percentile throughput (Mbps)"),
 }
 ws_names_colors = {
     1: "#003f5c",
@@ -105,8 +105,16 @@ def plot_agents_reqs(
                                         slices[slice],
                                     )[data_index[attribute][0]],
                                 )
+                            x_values = range(0, len(hist))
+                            markevery = 200
+                            if attribute == "throughput":
+                                hist, bins = np.histogram(hist, bins=50, density=True)
+                                x_values = 0.5 * (bins[1:] + bins[:-1])
+                                markevery = 10
+                                plt.xlabel("Throughput (Mbps)", fontsize=14)
+                                plt.ylabel("Probability density function", fontsize=14)
                             plt.plot(
-                                range(0, len(hist)),
+                                x_values,
                                 hist,
                                 label=label_slices
                                 + label_agent
@@ -120,7 +128,7 @@ def plot_agents_reqs(
                                 if len(slices) > 1
                                 else None,
                                 color=agents_names_colors[agent][1],
-                                markevery=200,
+                                markevery=markevery,
                             )
                     # if attribute in slices_req[traffic][slice].keys():
                     #     plt.plot(
