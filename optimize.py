@@ -157,7 +157,7 @@ def objective(trial: optuna.Trial) -> float:
             obs_space_mode,
         ),
         max_number_steps=2000,
-        max_number_trials=50,
+        max_number_trials=45,
         traffic_types=traffic_types,
         traffic_throughputs=traffic_throughputs,
         slice_requirements_traffics=slice_requirements_traffics,
