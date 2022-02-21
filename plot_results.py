@@ -257,6 +257,11 @@ def plot_rcv_thr(
     plt.xlabel(x_label, fontsize=14)
     plt.ylabel("Requested throughput (Mbps)", fontsize=14)
     plt.grid()
+    color = {
+        "be": "#ff6e54",
+        "embb": "#444e86",
+        "urllc": "#955196",
+    }
     for slice in slices.keys():
         label_slices = (
             "{}".format(slices_names_markers[slice][0]) if len(slices) > 1 else ""
@@ -283,7 +288,10 @@ def plot_rcv_thr(
             range(0, len(hist)),
             hist,
             label=label_slices,
-            markevery=200,
+            color=color[slice],
+            # markevery=200,
+            # markerfacecolor="None",
+            # marker=slices_names_markers[slice][1],
         )
 
     fig.tight_layout()
