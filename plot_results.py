@@ -25,7 +25,7 @@ agents_names_colors = {
     "mt": ("MT", "#ffa600"),
 }
 data_index = {
-    "throughput": (2, "Throughput (Mbps)"),
+    "throughput": (2, "Served throughput (Mbps)"),
     "latency": (4, "Latency (ms)"),
     "pkt_loss": (5, "Packet loss rate"),
     "long_term_pkt_thr": (7, "Long-term throughput (Mbps)"),
@@ -110,7 +110,7 @@ def plot_agents_reqs(
                             if attribute == "throughput":
                                 x_values = np.sort(hist)
                                 hist = 1.0 * np.arange(len(hist)) / (len(hist) - 1)
-                                plt.xlabel("Throughput (Mbps)", fontsize=14)
+                                plt.xlabel("Served throughput (Mbps)", fontsize=14)
                                 plt.ylabel(
                                     "Cummulated distribution function (CDF)",
                                     fontsize=14,
@@ -255,7 +255,7 @@ def plot_rcv_thr(
     w, h = plt.figaspect(0.6)
     fig = plt.figure(figsize=(w, h))
     plt.xlabel(x_label, fontsize=14)
-    plt.ylabel("Received throughput (Mbps)", fontsize=14)
+    plt.ylabel("Requested throughput (Mbps)", fontsize=14)
     plt.grid()
     for slice in slices.keys():
         label_slices = (
