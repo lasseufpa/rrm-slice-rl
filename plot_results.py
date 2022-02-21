@@ -108,11 +108,13 @@ def plot_agents_reqs(
                             x_values = range(0, len(hist))
                             markevery = 200
                             if attribute == "throughput":
-                                hist, bins = np.histogram(hist, bins=50, density=True)
-                                x_values = 0.5 * (bins[1:] + bins[:-1])
-                                markevery = 10
+                                x_values = np.sort(hist)
+                                hist = 1.0 * np.arange(len(hist)) / (len(hist) - 1)
                                 plt.xlabel("Throughput (Mbps)", fontsize=14)
-                                plt.ylabel("Probability density function", fontsize=14)
+                                plt.ylabel(
+                                    "Cummulated distribution function (CDF)",
+                                    fontsize=14,
+                                )
                             plt.plot(
                                 x_values,
                                 hist,
@@ -120,6 +122,7 @@ def plot_agents_reqs(
                                 + label_agent
                                 + label_windows_size
                                 + label_obs_space,
+                                markerfacecolor="None",
                                 marker=ws_markers[windows_size]
                                 if len(windows_sizes) > 1
                                 else obs_names_markers[obs_space][1]
@@ -213,6 +216,7 @@ def plot_rewards(
                             range(0, len(hist)),
                             hist,
                             label=label_agent + label_windows_size + label_obs_space,
+                            markerfacecolor="None",
                             marker=ws_markers[windows_size]
                             if len(windows_sizes) > 1
                             else obs_names_markers[obs_space][1]
