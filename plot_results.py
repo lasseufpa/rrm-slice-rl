@@ -120,7 +120,7 @@ def plot_agents_reqs(
                                 markevery = 100
                                 plt.xlabel("Served throughput (Mbps)", fontsize=14)
                                 plt.ylabel(
-                                    "Cummulated distribution function (CDF)",
+                                    "Cumulative distribution function (CDF)",
                                     fontsize=14,
                                 )
                             plt.plot(
@@ -337,7 +337,7 @@ slice_requirements_traffics = {
 
 ##### Comparing different windows sizes for full and partial obs space
 plot_rewards(
-    "ws_obs_comparison_td3",
+    "reward",
     [46, 47, 48, 49, 50],
     # ["td3"],
     ["rr", "mt", "pf", "sac"],
@@ -357,4 +357,4 @@ plot_agents_reqs(
     ["partial"],
 )
 
-plot_rcv_thr("metrics", [46])  # np.arange(46, 51),
+plot_rcv_thr("requested", [46])  # np.arange(46, 51),
