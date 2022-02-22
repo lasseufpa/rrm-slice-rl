@@ -110,6 +110,14 @@ def plot_agents_reqs(
                             if attribute == "throughput":
                                 x_values = np.sort(hist)
                                 hist = 1.0 * np.arange(len(hist)) / (len(hist) - 1)
+                                x_values = np.append(
+                                    x_values,
+                                    np.arange(np.max(x_values) + 1, 70 + 1),
+                                )
+                                hist = np.append(
+                                    hist, np.ones(len(x_values) - len(hist))
+                                )
+                                markevery = 100
                                 plt.xlabel("Served throughput (Mbps)", fontsize=14)
                                 plt.ylabel(
                                     "Cummulated distribution function (CDF)",
