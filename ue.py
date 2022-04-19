@@ -83,10 +83,7 @@ class UE:
         def traffic_embb():
             return np.floor(
                 np.abs(
-                    self.rng.normal(
-                        (self.traffic_throughput * 1e6) / self.packet_size,
-                        10,
-                    )
+                    self.rng.poisson((self.traffic_throughput * 1e6) / self.packet_size)
                 )
             )
 
@@ -101,9 +98,8 @@ class UE:
             if self.traffic_throughput != -1:
                 return np.floor(
                     np.abs(
-                        self.rng.normal(
-                            (self.traffic_throughput * 1e6) / self.packet_size,
-                            10,
+                        self.rng.poisson(
+                            (self.traffic_throughput * 1e6) / self.packet_size
                         )
                     )
                 )
