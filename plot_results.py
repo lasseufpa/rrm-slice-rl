@@ -185,7 +185,7 @@ def plot_rewards(
         w, h = plt.figaspect(0.6)
         fig = plt.figure(figsize=(w, h))
         plt.xlabel(x_label, fontsize=14)
-        plt.ylabel("Cummulative reward", fontsize=14)
+        plt.ylabel("Cumulative reward", fontsize=14)
         plt.grid()
         for obs_space in obs_spaces:
             label_obs_space = (
