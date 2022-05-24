@@ -29,7 +29,7 @@ data_index = {
     "latency": (4, "Latency (ms)"),
     "pkt_loss": (5, "Packet loss rate"),
     "long_term_pkt_thr": (7, "Long-term throughput (Mbps)"),
-    "fifth_perc_pkt_thr": (8, "Fifth percentile throughput (Mbps)"),
+    "fifth_perc_pkt_thr": (8, "Fifth-percentile throughput (Mbps)"),
 }
 ws_names_colors = {
     1: "#003f5c",
