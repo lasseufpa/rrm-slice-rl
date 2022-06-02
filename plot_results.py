@@ -153,6 +153,7 @@ def plot_agents_reqs(
                     #         label="{} Req.".format(slices_names_markers[slice][0]),
                     #     )
         fig.tight_layout()
+        plt.xticks(fontsize=12)
         plt.legend(fontsize=12)
         os.makedirs("./results", exist_ok=True)
         fig.savefig(
@@ -238,6 +239,7 @@ def plot_rewards(
                             markevery=200,
                         )
         fig.tight_layout()
+        plt.xticks(fontsize=12)
         plt.legend(fontsize=12)
         if any(order):
             handles, labels = plt.gca().get_legend_handles_labels()
@@ -303,6 +305,7 @@ def plot_rcv_thr(
         )
 
     fig.tight_layout()
+    plt.xticks(fontsize=12)
     plt.legend(fontsize=12)
     os.makedirs("./results", exist_ok=True)
     fig.savefig(
