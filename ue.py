@@ -48,8 +48,8 @@ class UE:
         self.se = Channel.read_se_file(
             "{}/se/trial{}_f{}_ue{}.npy", trial_number, frequency, id, self.root_path
         )
-        self.se = np.append(
-            self.se, self.se[1999]
+        self.se = np.insert(
+            self.se, 0, self.se[0]
         )  # Last step returns a observation space that is not used
         self.buffer_max_lat = buffer_max_lat
         self.buffer = Buffer(max_packets_buffer, buffer_max_lat)
