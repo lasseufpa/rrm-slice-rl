@@ -709,6 +709,7 @@ def main():
         plots=True,
         save_hist=True,
         rng=rng,
+        windows_size_obs=1,
     )
 
     basestation.reset()
