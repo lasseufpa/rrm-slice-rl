@@ -48,6 +48,9 @@ class UE:
         self.se = Channel.read_se_file(
             "{}/se/trial{}_f{}_ue{}.npy", trial_number, frequency, id, self.root_path
         )
+        self.se = np.append(
+            self.se, self.se[1999]
+        )  # Last step returns a observation space that is not used
         self.buffer_max_lat = buffer_max_lat
         self.buffer = Buffer(max_packets_buffer, buffer_max_lat)
         self.traffic_throughput = traffic_throughput
@@ -160,7 +163,7 @@ class UE:
             buffer_occupancy,
             avg_latency,
             pkt_loss,
-            self.se[step_number],
+            self.se[step_number + 1],
         ]
         normalize_factors = (
             [100, 100, 100, 1, self.buffer_max_lat, 1, 100, 100, 100]
