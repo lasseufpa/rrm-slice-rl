@@ -280,9 +280,9 @@ class Basestation(gym.Env):
         slice_requirements = np.array([])
         observation_slices = np.array([])
         observation_ues = np.array([])
-
+        slices_ordered = ["embb", "urllc", "be"]
         normalization_idx = 0
-        for slice_req in self.slice_requirements:
+        for slice_req in slices_ordered:
             for attribute in self.slice_requirements[slice_req]:
                 slice_requirements = np.append(
                     slice_requirements,
@@ -709,6 +709,7 @@ def main():
         plots=True,
         save_hist=True,
         rng=rng,
+        windows_size_obs=1,
     )
 
     basestation.reset()
