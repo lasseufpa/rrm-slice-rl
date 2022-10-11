@@ -59,7 +59,7 @@ slice_requirements_traffics = {
     },
 }
 
-models = ["sac"]
+models = ["iless"]  # ["sac", "iless"]
 obs_space_modes = ["full", "partial"]
 windows_sizes = [1]  # , 50, 100]
 seed = 10
@@ -123,6 +123,14 @@ def create_agent(
                 **hyperparameters,
                 seed=seed,
             )
+        elif type == "iless":
+            return SAC(
+                "MlpPolicy",
+                env,
+                verbose=0,
+                tensorboard_log="./tensorboard-logs/",
+                seed=seed,
+            )
     elif mode == "test":
         path = (
             "./agents/best_{}_{}_ws{}/best_model".format(
@@ -139,6 +147,12 @@ def create_agent(
             )
         elif type == "td3":
             return TD3.load(
+                path,
+                None,
+                verbose=0,
+            )
+        elif type == "iless":
+            return SAC.load(
                 path,
                 None,
                 verbose=0,
@@ -178,6 +192,7 @@ for windows_size_obs in tqdm(windows_sizes, desc="Windows size", leave=False):
                 windows_size_obs=windows_size_obs,
                 obs_space_mode=obs_space_mode,
                 rng=rng,
+                agent_type="main" if model != "iless" else "intentless",
             )
             env = Monitor(env)
             env = DummyVecEnv([lambda: env])

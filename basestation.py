@@ -51,6 +51,7 @@ class Basestation(gym.Env):
         normalize_ue_obs: bool = False,
         baseline: bool = False,
         root_path: str = ".",
+        agent_type: str = "main",
     ) -> None:
         self.bs_name = bs_name
         self.max_packets_buffer = max_packets_buffer
@@ -81,6 +82,7 @@ class Basestation(gym.Env):
         self.normalize_ue_obs = normalize_ue_obs
         self.root_path = root_path
         self.rng = rng
+        self.agent_type = agent_type
 
         self.ues, self.slices = self.create_scenario()
         self.action_space_options = self.create_combinations(
@@ -319,132 +321,156 @@ class Basestation(gym.Env):
         Calculates the environment reward for the action taken. It considers
         the slices requirements as basis to formulate how good was the action.
         """
-        w_embb_thr = 0.2
-        w_embb_lat = 0.05
-        w_embb_loss = 0.05
-        w_urllc_thr = 0.1
-        w_urllc_lat = 0.25
-        w_urllc_loss = 0.25
-        w_be_long = 0.05
-        w_be_fifth = 0.05
-        reward = 0
-        for slice in self.slices:
-            slice_hist = slice.get_last_no_windows_hist()
-            if slice.name == "embb":
-                req_thr_normalized = (
-                    self.slice_requirements["embb"]["throughput"]
-                    / self.slice_req_norm_factors[0]
-                )
-                req_lat_normalized = (
-                    self.slice_requirements["embb"]["latency"]
-                    / self.slice_req_norm_factors[1]
-                )
-                req_pkt_loss_normalized = (
-                    self.slice_requirements["embb"]["pkt_loss"]
-                    / self.slice_req_norm_factors[2]
-                )
+        if self.agent_type == "main":
+            w_embb_thr = 0.2
+            w_embb_lat = 0.05
+            w_embb_loss = 0.05
+            w_urllc_thr = 0.1
+            w_urllc_lat = 0.25
+            w_urllc_loss = 0.25
+            w_be_long = 0.05
+            w_be_fifth = 0.05
+            reward = 0
+            for slice in self.slices:
+                slice_hist = slice.get_last_no_windows_hist()
+                if slice.name == "embb":
+                    req_thr_normalized = (
+                        self.slice_requirements["embb"]["throughput"]
+                        / self.slice_req_norm_factors[0]
+                    )
+                    req_lat_normalized = (
+                        self.slice_requirements["embb"]["latency"]
+                        / self.slice_req_norm_factors[1]
+                    )
+                    req_pkt_loss_normalized = (
+                        self.slice_requirements["embb"]["pkt_loss"]
+                        / self.slice_req_norm_factors[2]
+                    )
 
-                # Throughput contribution
-                reward += (
-                    -w_embb_thr
-                    * (
-                        (req_thr_normalized - slice_hist["pkt_thr"])
-                        / req_thr_normalized
+                    # Throughput contribution
+                    reward += (
+                        -w_embb_thr
+                        * (
+                            (req_thr_normalized - slice_hist["pkt_thr"])
+                            / req_thr_normalized
+                        )
+                        if slice_hist["pkt_thr"] < req_thr_normalized
+                        else 0
                     )
-                    if slice_hist["pkt_thr"] < req_thr_normalized
-                    else 0
-                )
-                # Latency contribution
-                reward += (
-                    0
-                    if slice_hist["avg_lat"] <= req_lat_normalized
-                    else -w_embb_lat
-                    * (slice_hist["avg_lat"] - req_lat_normalized)
-                    / (
-                        (self.buffer_max_lat / self.slice_req_norm_factors[1])
-                        - req_lat_normalized
+                    # Latency contribution
+                    reward += (
+                        0
+                        if slice_hist["avg_lat"] <= req_lat_normalized
+                        else -w_embb_lat
+                        * (slice_hist["avg_lat"] - req_lat_normalized)
+                        / (
+                            (self.buffer_max_lat / self.slice_req_norm_factors[1])
+                            - req_lat_normalized
+                        )
                     )
-                )
-                # Packet loss contribution
-                reward += (
-                    0
-                    if slice_hist["pkt_loss"] <= req_pkt_loss_normalized
-                    else -w_embb_loss
-                    * (slice_hist["pkt_loss"] - req_pkt_loss_normalized)
-                    / (1 - req_pkt_loss_normalized)
-                )
-            elif slice.name == "urllc":
-                req_thr_normalized = (
-                    self.slice_requirements["urllc"]["throughput"]
-                    / self.slice_req_norm_factors[3]
-                )
-                req_lat_normalized = (
-                    self.slice_requirements["urllc"]["latency"]
-                    / self.slice_req_norm_factors[4]
-                )
-                req_pkt_loss_normalized = (
-                    self.slice_requirements["urllc"]["pkt_loss"]
-                    / self.slice_req_norm_factors[5]
-                )
+                    # Packet loss contribution
+                    reward += (
+                        0
+                        if slice_hist["pkt_loss"] <= req_pkt_loss_normalized
+                        else -w_embb_loss
+                        * (slice_hist["pkt_loss"] - req_pkt_loss_normalized)
+                        / (1 - req_pkt_loss_normalized)
+                    )
+                elif slice.name == "urllc":
+                    req_thr_normalized = (
+                        self.slice_requirements["urllc"]["throughput"]
+                        / self.slice_req_norm_factors[3]
+                    )
+                    req_lat_normalized = (
+                        self.slice_requirements["urllc"]["latency"]
+                        / self.slice_req_norm_factors[4]
+                    )
+                    req_pkt_loss_normalized = (
+                        self.slice_requirements["urllc"]["pkt_loss"]
+                        / self.slice_req_norm_factors[5]
+                    )
 
-                # Throughput contribution
-                reward += (
-                    -w_urllc_thr
-                    * (
-                        (req_thr_normalized - slice_hist["pkt_thr"])
-                        / req_thr_normalized
+                    # Throughput contribution
+                    reward += (
+                        -w_urllc_thr
+                        * (
+                            (req_thr_normalized - slice_hist["pkt_thr"])
+                            / req_thr_normalized
+                        )
+                        if slice_hist["pkt_thr"] < req_thr_normalized
+                        else 0
                     )
-                    if slice_hist["pkt_thr"] < req_thr_normalized
-                    else 0
-                )
-                # Latency contribution
-                reward += (
-                    0
-                    if slice_hist["avg_lat"] <= req_lat_normalized
-                    else -w_urllc_lat
-                    * (slice_hist["avg_lat"] - req_lat_normalized)
-                    / (
-                        (self.buffer_max_lat / self.slice_req_norm_factors[1])
-                        - req_lat_normalized
+                    # Latency contribution
+                    reward += (
+                        0
+                        if slice_hist["avg_lat"] <= req_lat_normalized
+                        else -w_urllc_lat
+                        * (slice_hist["avg_lat"] - req_lat_normalized)
+                        / (
+                            (self.buffer_max_lat / self.slice_req_norm_factors[1])
+                            - req_lat_normalized
+                        )
                     )
-                )
-                # Packet loss contribution
-                reward += (
-                    0
-                    if slice_hist["pkt_loss"] <= req_pkt_loss_normalized
-                    else -w_urllc_loss
-                    * (slice_hist["pkt_loss"] - req_pkt_loss_normalized)
-                    / (1 - req_pkt_loss_normalized)
-                )
-            elif slice.name == "be":
-                req_long_thr_normalized = (
-                    self.slice_requirements["be"]["long_term_pkt_thr"]
-                    / self.slice_req_norm_factors[6]
-                )
-                req_fifth_thr_normalized = (
-                    self.slice_requirements["be"]["fifth_perc_pkt_thr"]
-                    / self.slice_req_norm_factors[7]
-                )
+                    # Packet loss contribution
+                    reward += (
+                        0
+                        if slice_hist["pkt_loss"] <= req_pkt_loss_normalized
+                        else -w_urllc_loss
+                        * (slice_hist["pkt_loss"] - req_pkt_loss_normalized)
+                        / (1 - req_pkt_loss_normalized)
+                    )
+                elif slice.name == "be":
+                    req_long_thr_normalized = (
+                        self.slice_requirements["be"]["long_term_pkt_thr"]
+                        / self.slice_req_norm_factors[6]
+                    )
+                    req_fifth_thr_normalized = (
+                        self.slice_requirements["be"]["fifth_perc_pkt_thr"]
+                        / self.slice_req_norm_factors[7]
+                    )
 
-                # Long term average throughput contribution
-                reward += (
-                    -w_be_long
-                    * (
-                        (req_long_thr_normalized - slice_hist["long_term_pkt_thr"])
-                        / req_long_thr_normalized
+                    # Long term average throughput contribution
+                    reward += (
+                        -w_be_long
+                        * (
+                            (req_long_thr_normalized - slice_hist["long_term_pkt_thr"])
+                            / req_long_thr_normalized
+                        )
+                        if slice_hist["long_term_pkt_thr"] < req_long_thr_normalized
+                        else 0
                     )
-                    if slice_hist["long_term_pkt_thr"] < req_long_thr_normalized
-                    else 0
-                )
-                # Fifth percentile throughput contribution
-                reward += (
-                    -w_be_fifth
-                    * (
-                        (req_fifth_thr_normalized - slice_hist["fifth_perc_pkt_thr"])
-                        / req_fifth_thr_normalized
+                    # Fifth percentile throughput contribution
+                    reward += (
+                        -w_be_fifth
+                        * (
+                            (
+                                req_fifth_thr_normalized
+                                - slice_hist["fifth_perc_pkt_thr"]
+                            )
+                            / req_fifth_thr_normalized
+                        )
+                        if slice_hist["fifth_perc_pkt_thr"] < req_fifth_thr_normalized
+                        else 0
                     )
-                    if slice_hist["fifth_perc_pkt_thr"] < req_fifth_thr_normalized
-                    else 0
+        elif self.agent_type == "intentless":
+            embb_weights = np.array([1, 0.5, 2e-4])
+            be_weights = np.array([1, 0.5, 2e-4]) * (1 / 5)
+            urllc_weights = np.array([2, 1, 4e-4])
+            reward = 0
+            for slice in self.slices:
+                slice_hist = slice.get_last_no_windows_hist()
+
+                if slice.name == "embb":
+                    weights = embb_weights
+                elif slice.name == "urllc":
+                    weights = urllc_weights
+                elif slice.name == "be":
+                    weights = be_weights
+
+                reward += (
+                    weights[0] * np.exp(-slice_hist["avg_lat"])
+                    + weights[1] * np.exp(-slice_hist["pkt_loss"])
+                    + weights[2] * slice_hist["pkt_thr"]
                 )
 
         return reward
