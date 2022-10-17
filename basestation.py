@@ -472,6 +472,17 @@ class Basestation(gym.Env):
                     + weights[1] * np.exp(-slice_hist["pkt_loss"])
                     + weights[2] * slice_hist["pkt_thr"]
                 )
+        elif self.agent_type == "colran":
+            reward = 0
+            for slice in self.slices:
+                slice_hist = slice.get_last_no_windows_hist()
+
+                if slice.name == "embb":
+                    reward += slice_hist["pkt_thr"]
+                elif slice.name == "urllc":
+                    reward -= (slice_hist["buffer_occ"]*self.max_packets_buffer*self.packet_size)/1e6
+                elif slice.name == "be":
+                    reward += slice_hist["fifth_perc_pkt_thr"]
 
         return reward
 

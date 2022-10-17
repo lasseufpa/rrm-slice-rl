@@ -2,7 +2,7 @@ import os
 
 import joblib
 import numpy as np
-from stable_baselines3 import SAC, TD3
+from stable_baselines3 import SAC, TD3, PPO, DDPG
 from stable_baselines3.common.callbacks import CheckpointCallback, EvalCallback
 from stable_baselines3.common.monitor import Monitor
 from stable_baselines3.common.vec_env import DummyVecEnv, VecNormalize
@@ -59,10 +59,10 @@ slice_requirements_traffics = {
     },
 }
 
-models = ["iless"]  # ["sac", "iless"]
+models = ["intentless", "colran", "sac"]
 obs_space_modes = ["full", "partial"]
 windows_sizes = [1]  # , 50, 100]
-seed = 10
+seed = 100
 model_save_freq = int(
     train_param["total_trials"]
     * train_param["steps_per_trial"]
@@ -123,8 +123,16 @@ def create_agent(
                 **hyperparameters,
                 seed=seed,
             )
-        elif type == "iless":
-            return SAC(
+        elif type == "intentless":
+            return DDPG(
+                "MlpPolicy",
+                env,
+                verbose=0,
+                tensorboard_log="./tensorboard-logs/",
+                seed=seed,
+            )
+        elif type == "colran":
+            return PPO(
                 "MlpPolicy",
                 env,
                 verbose=0,
@@ -151,8 +159,14 @@ def create_agent(
                 None,
                 verbose=0,
             )
-        elif type == "iless":
-            return SAC.load(
+        elif type == "intentless":
+            return DDPG.load(
+                path,
+                None,
+                verbose=0,
+            )
+        elif type == "colran":
+            return PPO.load(
                 path,
                 None,
                 verbose=0,
@@ -192,7 +206,7 @@ for windows_size_obs in tqdm(windows_sizes, desc="Windows size", leave=False):
                 windows_size_obs=windows_size_obs,
                 obs_space_mode=obs_space_mode,
                 rng=rng,
-                agent_type="main" if model != "iless" else "intentless",
+                agent_type="main" if model not in ["intentless", "colran"] else model,
             )
             env = Monitor(env)
             env = DummyVecEnv([lambda: env])
