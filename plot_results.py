@@ -18,8 +18,8 @@ slices_names_markers = {
 }
 agents_names_colors = {
     "sac": ("SAC", "#003f5c"),
-    "td3": ("TD3", "#444e86"),
-    "dqn": ("DQN", "#955196"),
+    "intentless": ("Inteligent", "#444e86"),
+    "colran": ("Col-RAN", "#955196"),
     "rr": ("RR", "#dd5182"),
     "pf": ("PF", "#ff6e54"),
     "mt": ("MT", "#ffa600"),
@@ -343,7 +343,7 @@ plot_rewards(
     "reward",
     [46, 47, 48, 49, 50],
     # ["td3"],
-    ["rr", "mt", "pf", "sac"],
+    ["rr", "mt", "pf", "sac", "intentless", "colran"],
     # [1, 50, 100],
     [1],
     ["full", "partial"],
@@ -355,7 +355,7 @@ plot_agents_reqs(
     "metrics",
     [46],
     slice_requirements_traffics,
-    ["rr", "mt", "pf", "sac"],
+    ["rr", "mt", "pf", "sac", "intentless", "colran"],
     [1],
     ["partial"],
 )
