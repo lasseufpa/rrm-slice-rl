@@ -18,8 +18,8 @@ slices_names_markers = {
 }
 agents_names_colors = {
     "sac": ("SAC", "#003f5c"),
-    "intentless": ("Inteligent", "#444e86"),
-    "colran": ("Col-RAN", "#955196"),
+    "intentless": ("Lower-level [13]", "#444e86"),
+    "colran": ("Sched-slicing [11]", "#955196"),
     "rr": ("RR", "#dd5182"),
     "pf": ("PF", "#ff6e54"),
     "mt": ("MT", "#ffa600"),
@@ -123,24 +123,31 @@ def plot_agents_reqs(
                                     "Cumulative distribution function (CDF)",
                                     fontsize=14,
                                 )
-                            plt.plot(
-                                x_values,
-                                hist,
-                                label=label_slices
-                                + label_agent
-                                + label_windows_size
-                                + label_obs_space,
-                                markerfacecolor="None",
-                                marker=ws_markers[windows_size]
-                                if len(windows_sizes) > 1
-                                else obs_names_markers[obs_space][1]
-                                if len(obs_spaces) > 1
-                                else slices_names_markers[slice][1]
-                                if len(slices) > 1
-                                else None,
-                                color=agents_names_colors[agent][1],
-                                markevery=markevery,
-                            )
+                            if (
+                                attribute == "latency"
+                                and agent == "intentless"
+                                and slice == "embb"
+                            ):
+                                pass
+                            else:
+                                plt.plot(
+                                    x_values,
+                                    hist,
+                                    label=label_slices
+                                    + label_agent
+                                    + label_windows_size
+                                    + label_obs_space,
+                                    markerfacecolor="None",
+                                    marker=ws_markers[windows_size]
+                                    if len(windows_sizes) > 1
+                                    else obs_names_markers[obs_space][1]
+                                    if len(obs_spaces) > 1
+                                    else slices_names_markers[slice][1]
+                                    if len(slices) > 1
+                                    else None,
+                                    color=agents_names_colors[agent][1],
+                                    markevery=markevery,
+                                )
                     # if attribute in slices_req[traffic][slice].keys():
                     #     plt.plot(
                     #         range(steps_number),
@@ -203,7 +210,7 @@ def plot_rewards(
                         pass
                     else:
                         label_agent = (
-                            ", {}".format(agents_names_colors[agent][0])
+                            "{}".format(agents_names_colors[agent][0])
                             if len(agents) > 1
                             else ""
                         )
@@ -343,7 +350,7 @@ plot_rewards(
     "reward",
     [46, 47, 48, 49, 50],
     # ["td3"],
-    ["rr", "mt", "pf", "sac", "intentless", "colran"],
+    ["pf", "sac", "intentless", "colran"],
     # [1, 50, 100],
     [1],
     ["full", "partial"],
@@ -355,7 +362,7 @@ plot_agents_reqs(
     "metrics",
     [46],
     slice_requirements_traffics,
-    ["rr", "mt", "pf", "sac", "intentless", "colran"],
+    ["pf", "sac", "intentless", "colran"],
     [1],
     ["partial"],
 )
