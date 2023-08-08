@@ -18,3 +18,17 @@ Run the command `pipenv python run.py` to start the simulation for all scenarios
 ## Generating figures with the results
 
 To generate the figures with results obtained in the paper, you can run `pipenv run python plot_results.py` and the figures should be available into the folder `results" as soon as the script finish.
+
+## Citing this project
+To cite this repository in publications:
+```
+@ARTICLE{nahum2023rrs,
+  author={Nahum, Cleverson V. and Lopes, Victor Hugo and Dreifuerst, Ryan M. and Batista, Pedro and Correa, Ilan and Cardoso, Kleber V. and Klautau, Aldebaro and Heath, Robert W.},
+  journal={IEEE Transactions on Wireless Communications}, 
+  title={Intent-aware Radio Resource Scheduling in a RAN Slicing Scenario using Reinforcement Learning}, 
+  year={2023},
+  volume={},
+  number={},
+  pages={1-1},
+  doi={10.1109/TWC.2023.3297014}}
+```
