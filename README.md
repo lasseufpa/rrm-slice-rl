@@ -14,7 +14,7 @@ Code containing RRM simulation using RL in a scenario with RAN slicing.
 Run the script `optimize.py` using pipenv running `pipenv run python optimize.py`. It would take a long time to Optuna generate the optimized hyperparameters for each scenario, so you can use the hyperparameters that it were already generated into `hyperparameter_opt` folder and **skip this step**.
 ## Training and testing ML model 
 
-Run the command `pipenv python run.py` to start the simulation for all scenarios. You can watch the training performance using tensorboard. After the training finish, the RL models will be saved into `agents` folder, the VecNormalize parameters into `vecnormalize_models` folder, the evaluations made along with the trainign into `evaluations` folder, and the test results into `hist` folder.
+Run the command `pipenv run python run.py` to start the simulation for all scenarios. You can watch the training performance using tensorboard. After the training finish, the RL models will be saved into `agents` folder, the VecNormalize parameters into `vecnormalize_models` folder, the evaluations made along with the trainign into `evaluations` folder, and the test results into `hist` folder.
 ## Generating figures with the results
 
 To generate the figures with results obtained in the paper, you can run `pipenv run python plot_results.py` and the figures should be available into the folder `results" as soon as the script finish.
