@@ -1,10 +1,10 @@
 import os
 from itertools import product
 
-import gym
+import gymnasium as gym
 import matplotlib.pyplot as plt
 import numpy as np
-from gym import spaces
+from gymnasium import spaces
 from numpy.random import BitGenerator
 from numpy.testing._private.utils import requires_memory
 from tqdm import tqdm
@@ -83,6 +83,7 @@ class Basestation(gym.Env):
         self.root_path = root_path
         self.rng = rng
         self.agent_type = agent_type
+        self.seed = 0  # Requested by Stablebaselines agent
 
         self.ues, self.slices = self.create_scenario()
         self.action_space_options = self.create_combinations(
@@ -189,10 +190,11 @@ class Basestation(gym.Env):
             self.get_obs_space(),
             reward,
             self.step_number == (self.max_number_steps),
+            False,
             {},
         )
 
-    def reset(self, initial_trial: int = -1):
+    def reset(self, initial_trial: int = -1, seed: int = None):
         """
         Reset the UEs and Slices to enable the environment to start other
         episode without past residuous. The reset function increases
@@ -222,7 +224,7 @@ class Basestation(gym.Env):
             for hist_label in self.hist_labels
         }
 
-        return self.get_obs_space()
+        return (self.get_obs_space(), {})
 
     def render(self, mode="human"):
         pass
@@ -480,7 +482,11 @@ class Basestation(gym.Env):
                 if slice.name == "embb":
                     reward += slice_hist["pkt_thr"]
                 elif slice.name == "urllc":
-                    reward -= (slice_hist["buffer_occ"]*self.max_packets_buffer*self.packet_size)/1e6
+                    reward -= (
+                        slice_hist["buffer_occ"]
+                        * self.max_packets_buffer
+                        * self.packet_size
+                    ) / 1e6
                 elif slice.name == "be":
                     reward += slice_hist["fifth_perc_pkt_thr"]
 

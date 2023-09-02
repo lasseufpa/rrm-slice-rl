@@ -1,6 +1,6 @@
 from typing import Any, Dict
 
-import gym
+import gymnasium as gym
 import joblib
 import numpy as np
 import optuna
