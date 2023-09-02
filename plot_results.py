@@ -18,8 +18,8 @@ slices_names_markers = {
 }
 agents_names_colors = {
     "sac": ("SAC", "#003f5c"),
-    "intentless": ("Lower-level [14]", "#444e86"),
-    "colran": ("Sched-slicing [12]", "#955196"),
+    "intentless": ("Lower-level [11]", "#444e86"),
+    "colran": ("Sched-slicing [9]", "#955196"),
     "rr": ("RR", "#dd5182"),
     "pf": ("PF", "#ff6e54"),
     "mt": ("MT", "#ffa600"),
